@@ -34,6 +34,7 @@ target_include_directories(multi_lib PUBLIC src/multi_lib /usr/include/coin )
 target_link_libraries(multi_lib ${GLPK_LIBRARIES})
 target_link_libraries(multi_lib ${Boost_LIBRARIES})
 target_link_libraries(multi_lib -lm)
+target_link_libraries(multi_lib -ldl)
 target_link_libraries(multi_lib ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(multi_lib process)
 

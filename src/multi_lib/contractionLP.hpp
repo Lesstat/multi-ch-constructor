@@ -21,12 +21,16 @@
 #include "child.hpp"
 #include "graph.hpp"
 #include "io.hpp"
+#include <boost/dll.hpp>
+
+const auto dir = boost::dll::program_location().parent_path();
+const auto lp_executable = "multi_lp";
 
 namespace bp = boost::process;
 class ContractionLp {
   public:
   ContractionLp()
-      : lp("./build/multi_lp", std::to_string(Cost::dim), bp::std_out > lpOutput,
+      : lp(dir / lp_executable, std::to_string(Cost::dim), bp::std_out > lpOutput,
             bp::std_in < lpInput){};
   ContractionLp(const ContractionLp& other) = delete;
   ContractionLp(ContractionLp&& other)
