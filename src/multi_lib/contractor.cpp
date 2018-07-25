@@ -321,8 +321,16 @@ class ContractingThread {
 };
 
 Contractor::Contractor(bool printStatistics)
-    : printStatistics(printStatistics)
+    : Contractor(printStatistics,
+          std::thread::hardware_concurrency() > 0 ? std::thread::hardware_concurrency() : 1)
 {
+}
+
+Contractor::Contractor(bool printStatistics, size_t maxThreads)
+    : printStatistics(printStatistics)
+    , THREAD_COUNT(maxThreads)
+{
+
   while (lps.size() < THREAD_COUNT) {
     lps.push_back(std::make_unique<ContractionLp>());
   }

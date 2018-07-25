@@ -25,9 +25,9 @@
 #include <iomanip>
 #include <random>
 
-Graph contractGraph(Graph& g, double rest, bool printStats)
+Graph contractGraph(Graph& g, double rest, bool printStats, size_t maxThreads)
 {
-  Contractor c{ printStats };
+  Contractor c{ printStats, maxThreads };
   auto start = std::chrono::high_resolution_clock::now();
   Graph ch = c.contractCompletely(g, rest);
   auto end = std::chrono::high_resolution_clock::now();
@@ -167,6 +167,7 @@ int main(int argc, char* argv[])
   std::string loadFileName{};
   std::string saveFileName{};
   double contractionPercent;
+  size_t maxThreads = std::thread::hardware_concurrency();
 
   po::options_description loading{ "loading options" };
   loading.add_options()(
@@ -177,6 +178,7 @@ int main(int argc, char* argv[])
   contraction.add_options()("percent,p", po::value<double>(&contractionPercent)->default_value(98),
       "How far the graph should be contracted");
   contraction.add_options()("stats", "Print statistics while contracting");
+  contraction.add_options()("threads", po::value(&maxThreads), "Maximal number of threads used");
 
   po::options_description saving{ "saving" };
   saving.add_options()("write,w", po::value<std::string>(&saveFileName), "File to save graph to");
@@ -206,7 +208,7 @@ int main(int argc, char* argv[])
 
   bool printStats = vm.count("stats") > 0;
   std::cout << "Start contracting" << '\n';
-  g = contractGraph(g, 100 - contractionPercent, printStats);
+  g = contractGraph(g, 100 - contractionPercent, printStats, maxThreads);
 
   if (vm.count("write") > 0) {
     std::cout << "saving" << '\n';

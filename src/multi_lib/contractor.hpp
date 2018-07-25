@@ -36,6 +36,7 @@ class Contractor {
   public:
   Contractor() = delete;
   Contractor(bool printStatistics);
+  Contractor(bool printStatistics, size_t maxThreads);
   Contractor(const Contractor& other) = default;
   Contractor(Contractor&& other) = default;
   virtual ~Contractor() noexcept;
@@ -63,8 +64,7 @@ class Contractor {
   std::vector<Node> contractedNodes;
   std::vector<EdgeId> contractedEdges;
   bool printStatistics = false;
-  const size_t THREAD_COUNT
-      = std::thread::hardware_concurrency() > 0 ? std::thread::hardware_concurrency() : 1;
+  const size_t THREAD_COUNT;
   std::vector<std::unique_ptr<ContractionLp>> lps;
 };
 
