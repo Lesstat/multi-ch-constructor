@@ -266,12 +266,15 @@ std::ostream& operator<<(std::ostream& stream, const Config& c)
 
 Config generateRandomConfig()
 {
+  double configLeft = 1.0;
+  std::vector<double> confValues;
   std::random_device rd{};
-  std::uniform_real_distribution lenDist(0.0, 1.0);
-  LengthConfig l(lenDist(rd));
-  std::uniform_real_distribution heightDist(0.0, 1.0 - l.get());
-  HeightConfig h(heightDist(rd));
-  UnsuitabilityConfig u(1 - l - h);
-
-  return Config{ l, h, u };
+  for (size_t i = 0; i < Cost::dim - 1; ++i) {
+    std::uniform_real_distribution dist(0.0, configLeft);
+    double val = dist(rd);
+    confValues.push_back(val);
+    configLeft -= val;
+  }
+  confValues.push_back(configLeft);
+  return Config{ confValues };
 }

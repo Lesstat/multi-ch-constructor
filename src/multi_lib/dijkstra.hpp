@@ -45,12 +45,17 @@ struct Config {
 
   Config(LengthConfig l, HeightConfig h, UnsuitabilityConfig u)
   {
-    values[0] = l;
-    values[1] = h;
-    values[2] = u;
-    asureNonNegativity(values[0]);
-    asureNonNegativity(values[1]);
-    asureNonNegativity(values[2]);
+    if constexpr (Cost::dim == 3) {
+      values[0] = l;
+      values[1] = h;
+      values[2] = u;
+      asureNonNegativity(values[0]);
+      asureNonNegativity(values[1]);
+      asureNonNegativity(values[2]);
+    } else {
+      throw std::runtime_error(
+          "Constructor for dimension 3 called when dimension is " + std::to_string(Cost::dim));
+    }
   }
   Config(const std::vector<double>& values)
   {
@@ -126,7 +131,7 @@ class Dijkstra {
   std::vector<double> costT;
   std::vector<NodePos> touchedS;
   std::vector<NodePos> touchedT;
-  Config config = Config(LengthConfig(0), HeightConfig(0), UnsuitabilityConfig(0));
+  Config config = Config(std::vector(Cost::dim, 0.0));
   Graph* graph;
 };
 

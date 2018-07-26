@@ -103,7 +103,7 @@ class ContractingThread {
   MultiQueue<EdgePair>& queue;
   Graph& graph;
   StatisticsCollector stats;
-  Config config{ LengthConfig{ 0.33 }, HeightConfig{ 0.33 }, UnsuitabilityConfig{ 0.33 } };
+  Config config;
   ContractionLp* lp;
   HalfEdge in;
   HalfEdge out;
@@ -122,6 +122,7 @@ class ContractingThread {
       : queue(queue)
       , graph(g)
       , stats(printStatistics)
+      , config(std::vector(Cost::dim, 1.0 / Cost::dim))
       , lp(lp)
       , d(g.createNormalDijkstra())
       , set(set)

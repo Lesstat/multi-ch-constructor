@@ -55,8 +55,7 @@ int testGraph(Graph& g)
   NormalDijkstra n = g.createNormalDijkstra(true);
   std::random_device rd{};
   std::uniform_int_distribution<size_t> dist(0, g.getNodeCount() - 1);
-  Config c{ LengthConfig{ 1.0 / 3.0 }, HeightConfig{ 1.0 / 3.0 },
-    UnsuitabilityConfig{ 1.0 / 3.0 } };
+  Config c{ std::vector(Cost::dim, 1.0 / Cost::dim) };
 
   size_t route = 0;
   size_t noRoute = 0;
@@ -87,12 +86,10 @@ int testGraph(Graph& g)
                   << "cost differ in route from " << from << " (" << g.getNode(from).id() << ") to "
                   << to << " (" << g.getNode(to).id() << ")" << '\n';
         std::cout << "Edge count: " << nRoute->edges.size() << '\n';
-        std::cout << "dLength: " << dRoute->costs.values[0]
-                  << ", nLength: " << nRoute->costs.values[0] << '\n';
-        std::cout << "dHeight: " << dRoute->costs.values[1]
-                  << ", nHeight: " << nRoute->costs.values[1] << '\n';
-        std::cout << "dUnsuitability: " << dRoute->costs.values[2]
-                  << ", nUnsuitability: " << nRoute->costs.values[2] << '\n';
+        for (size_t i = 0; i < Cost::dim; ++i) {
+          std::cout << "dcost" << i << ": " << dRoute->costs.values[i] << ", ncost" << i << ": "
+                    << nRoute->costs.values[i] << '\n';
+        }
         std::cout << "total cost d: " << dRoute->costs * c
                   << ", total cost n: " << nRoute->costs * c << '\n';
         std::unordered_set<NodeId> nodeIds;
@@ -126,12 +123,17 @@ int testGraph(Graph& g)
               std::cout << "did not find correct subpath between " << nextToLastPos << " and "
                         << currentPos << " at index " << i << '\n';
 
-              std::cout << '\n'
-                        << "Normal dijkstra needs length " << nTest->costs.values[0] << " height "
-                        << nTest->costs.values[1] << " road " << nTest->costs.values[2] << '\n';
+              std::cout << '\n' << "Normal dijkstra needs: ";
+              for (size_t i = 0; i < Cost::dim; ++i) {
+                std::cout << nTest->costs.values[i] << ", ";
+              }
+              std::cout << '\n';
 
-              std::cout << "CH dijkstra needs     length " << dTest->costs.values[0] << " height "
-                        << dTest->costs.values[1] << " road " << dTest->costs.values[2] << '\n';
+              std::cout << '\n' << "CH dijkstra needs: ";
+              for (size_t i = 0; i < Cost::dim; ++i) {
+                std::cout << dTest->costs.values[i] << ", ";
+              }
+              std::cout << '\n';
 
               pos++;
             } else {
