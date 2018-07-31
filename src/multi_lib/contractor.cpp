@@ -184,7 +184,7 @@ class ContractingThread {
     route = *foundRoute;
     constraints.push_back(currentCost);
 
-    if (isShortest) {
+    if (isShortest && route.pathCount == 1) {
       storeShortcut(StatisticsCollector::CountType::shortestPath);
       return true;
     }

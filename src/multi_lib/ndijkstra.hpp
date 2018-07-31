@@ -96,7 +96,7 @@ struct BiggerRouteCost {
 
 class RouteIterator {
   public:
-  RouteIterator(NormalDijkstra* dijkstra, NodePos from, NodePos to, size_t maxHeapSize = 500);
+  RouteIterator(NormalDijkstra* dijkstra, NodePos from, NodePos to, size_t maxHeapSize = 100);
   ~RouteIterator() = default;
 
   std::optional<RouteWithCount> next();

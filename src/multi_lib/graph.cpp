@@ -264,8 +264,16 @@ void Graph::writeToStream(std::ostream& out) const
     node.writeToStream(out);
   }
 
-  for (const auto& halfEdge : inEdges) {
-    const auto& edge = Edge::getEdge(halfEdge.id);
+  std::vector<Edge> edges;
+  edges.reserve(inEdges.size());
+
+  std::transform(inEdges.begin(), inEdges.end(), std::back_inserter(edges),
+      [](const auto& e) { return Edge::getEdge(e.id); });
+
+  std::sort(edges.begin(), edges.end(),
+      [](const auto& left, const auto& right) { return left.getId() < right.getId(); });
+
+  for (const auto& edge : edges) {
     edge.writeToStream(out);
   }
 }

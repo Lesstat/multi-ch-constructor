@@ -25,11 +25,16 @@
 void addVariables(glp_prob* lp, const int varCount)
 {
   glp_add_cols(lp, varCount);
-  for (int i = 0; i < varCount; ++i) {
+  for (int i = 0; i < varCount - 1; ++i) {
     glp_set_col_bnds(lp, i + 1, GLP_DB, 0, 1);
     glp_set_col_kind(lp, i + 1, GLP_CV);
-    glp_set_obj_coef(lp, i + 1, 1);
+    glp_set_obj_coef(lp, i + 1, 0);
   }
+
+  // We want to maximize the epsilon
+  glp_set_col_bnds(lp, varCount - 1, GLP_LO, 0, 0);
+  glp_set_col_kind(lp, varCount - 1, GLP_CV);
+  glp_set_obj_coef(lp, varCount - 1, 1);
 }
 
 void addSumEqOneConstraint(glp_prob* lp, const int varCount)
@@ -38,6 +43,7 @@ void addSumEqOneConstraint(glp_prob* lp, const int varCount)
 
   std::vector<int> ind(varCount + 1, 0);
   std::vector<double> val(varCount + 1, 1);
+  val[varCount] = 0; // Epsilon is not part of this constraint
 
   for (int i = 0; i < varCount + 1; ++i) {
     ind[i] = i;
@@ -62,7 +68,7 @@ bool readConstraints(glp_prob* lp, const size_t varCount)
     if (stringValues.size() == 0) {
       break;
     }
-    if (stringValues.size() != varCount) {
+    if (stringValues.size() != varCount - 1) {
       std::cerr << "Incorrect number of coefficients " << stringValues.size() << "\n";
       return false;
     }
@@ -75,7 +81,11 @@ bool readConstraints(glp_prob* lp, const size_t varCount)
       ind.push_back(i++);
       val.push_back(std::stod(s));
     }
-    glp_set_row_bnds(lp, row, GLP_LO, 0, 0);
+
+    // Epsilon
+    ind.push_back(i++);
+    val.push_back(-1);
+    glp_set_row_bnds(lp, row, GLP_LO, 0.0, 0);
     glp_set_mat_row(lp, row, varCount, &ind[0], &val[0]);
   }
   return true;
@@ -85,11 +95,13 @@ bool active = true;
 
 int main(int /*argc*/, char* argv[])
 {
-  const size_t varCount = std::stoull(argv[1]);
+  // Input is component count of alpha
+  // We add an aditional epsilon variable
+  const size_t varCount = std::stoull(argv[1]) + 1;
 
   while (active) {
     std::unique_ptr<glp_prob, void (*)(glp_prob*)> lp(glp_create_prob(), glp_delete_prob);
-    glp_set_obj_dir(lp.get(), GLP_MIN);
+    glp_set_obj_dir(lp.get(), GLP_MAX);
 
     addVariables(lp.get(), varCount);
 
@@ -115,7 +127,8 @@ int main(int /*argc*/, char* argv[])
       continue;
     }
 
-    for (size_t i = 1; i < varCount + 1; ++i) {
+    // print values of alpha (not epsilon)
+    for (size_t i = 1; i < varCount; ++i) {
       std::cout << glp_get_col_prim(lp.get(), i) << "\n";
     }
 
