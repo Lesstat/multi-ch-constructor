@@ -158,6 +158,8 @@ int testGraph(Graph& g)
   std::cout << "Compared " << route << " routes" << '\n';
   std::cout << "Did not find a route in " << noRoute << " cases" << '\n';
   std::cout << "average speed up is " << static_cast<double>(nTime) / dTime << '\n';
+  std::cout << "average CH Dijkstra time: " << static_cast<double>(dTime) / route << "ms " << '\n';
+  std::cout << "average    Dijkstra time: " << static_cast<double>(nTime) / route << "ms " << '\n';
   return 0;
 }
 
@@ -222,5 +224,5 @@ int main(int argc, char* argv[])
 
     g.writeToStream(outFile);
   }
-  testGraph(g);
+  return testGraph(g);
 }
