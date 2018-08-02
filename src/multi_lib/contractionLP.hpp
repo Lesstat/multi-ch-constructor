@@ -28,10 +28,17 @@ const auto lp_executable = "multi_lp";
 
 namespace bp = boost::process;
 class ContractionLp {
+
+  std::vector<double> variableValues_;
+  double epsilon_ = -1;
+
   public:
   ContractionLp()
       : lp(dir / lp_executable, std::to_string(Cost::dim), bp::std_out > lpOutput,
-            bp::std_in < lpInput){};
+            bp::std_in < lpInput)
+  {
+    variableValues_.reserve(Cost::dim);
+  };
   ContractionLp(const ContractionLp& other) = delete;
   ContractionLp(ContractionLp&& other)
   {
@@ -53,26 +60,29 @@ class ContractionLp {
   }
   bool solve()
   {
+    variableValues_.clear();
+    epsilon_ = -1;
+
     lpInput << '\n';
     lpInput.flush();
     lpOutput >> lpResult;
     if (lpResult == "Infeasible") {
       return false;
     }
-    return true;
-  }
-  std::vector<double> variableValues()
-  {
 
-    std::vector<double> result;
-    result.push_back(std::stod(lpResult));
+    variableValues_.push_back(std::stod(lpResult));
     double coeff = 0;
     for (size_t i = 1; i < Cost::dim; ++i) {
       lpOutput >> coeff;
-      result.push_back(coeff);
+      variableValues_.push_back(coeff);
     }
-    return result;
+    lpOutput >> epsilon_;
+
+    return true;
   }
+  std::vector<double> variableValues() const { return variableValues_; }
+
+  double epsilon() const { return epsilon_; }
 
   protected:
   private:
