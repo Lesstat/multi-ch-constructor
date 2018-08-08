@@ -94,8 +94,7 @@ std::pair<bool, std::optional<RouteWithCount>> checkShortestPath(
 
   auto shortcutCost = startEdge.cost + destEdge.cost;
   auto route = foundRoute.value();
-  bool isShortest
-      = route.costs == shortcutCost; // route.costs * conf >= shortcutCost * conf - 0.0001;
+  bool isShortest = route.costs == shortcutCost;
   return std::make_pair(isShortest, foundRoute);
 }
 
@@ -184,8 +183,15 @@ class ContractingThread {
     route = *foundRoute;
     constraints.push_back(currentCost);
 
-    if (isShortest && route.pathCount == 1) {
-      storeShortcut(StatisticsCollector::CountType::shortestPath);
+    if (isShortest) {
+      if (route.pathCount == 1
+          || std::any_of(route.edges.begin(), route.edges.end(), [this](const auto& id) {
+               auto node = Edge::getEdge(id).destPos();
+               return set.count(node) > 0;
+             })) {
+        storeShortcut(StatisticsCollector::CountType::shortestPath);
+      }
+
       return true;
     }
 
@@ -287,7 +293,6 @@ class ContractingThread {
           Config newConfig{ values };
           if (newConfig == config) {
             sameCount++;
-
             if (currentCost * config >= shortcutCost * config - 0.000001) {
 
               auto routeIter = d.routeIter(in.end, out.end);
