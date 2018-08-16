@@ -127,7 +127,6 @@ int main(int /*argc*/, char* argv[])
       continue;
     }
 
-    // print values of alpha (not epsilon)
     for (size_t i = 1; i < varCount + 1; ++i) {
       std::cout << glp_get_col_prim(lp.get(), i) << "\n";
     }

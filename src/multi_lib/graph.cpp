@@ -181,7 +181,7 @@ Graph Graph::createFromStream(std::istream& file)
   if (dim != Cost::dim) {
     std::cerr << "Graph file is of dimension " << dim << " code is compiled for dimension "
               << Cost::dim << '\n';
-    std::runtime_error("Graph has wrong dimension");
+    throw std::runtime_error("Graph has wrong dimension");
   }
   size_t nodeCount = readCount(file);
   nodes.reserve(nodeCount);
