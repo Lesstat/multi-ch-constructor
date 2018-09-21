@@ -15,8 +15,10 @@
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
 #include "ndijkstra.hpp"
 #include <future>
+#include <iomanip>
 
 void Graph::connectEdgesToNodes(const std::vector<Node>& nodes, const std::vector<EdgeId>& edges)
 {
@@ -168,6 +170,7 @@ template <class Obj> void parseLines(std::vector<Obj>& v, std::istream& file, si
 
 Graph Graph::createFromStream(std::istream& file)
 {
+  file >> std::setprecision(7);
   std::vector<Node> nodes{};
   std::vector<Edge> edges{};
   std::string line{};
@@ -257,6 +260,7 @@ NodePos Graph::getNodePos(const Node* n) const
 
 void Graph::writeToStream(std::ostream& out) const
 {
+  out << std::setprecision(7);
   out << Cost::dim << '\n';
   out << nodes.size() << '\n';
   out << inEdges.size() << '\n';
