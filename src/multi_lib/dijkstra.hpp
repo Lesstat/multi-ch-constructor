@@ -43,20 +43,6 @@ struct Config {
     }
   }
 
-  Config(LengthConfig l, HeightConfig h, UnsuitabilityConfig u)
-  {
-    if constexpr (Cost::dim == 3) {
-      values[0] = l;
-      values[1] = h;
-      values[2] = u;
-      asureNonNegativity(values[0]);
-      asureNonNegativity(values[1]);
-      asureNonNegativity(values[2]);
-    } else {
-      throw std::runtime_error(
-          "Constructor for dimension 3 called when dimension is " + std::to_string(Cost::dim));
-    }
-  }
   Config(const std::vector<double>& values)
   {
     for (size_t i = 0; i < Cost::dim; ++i) {
