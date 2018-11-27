@@ -22,10 +22,18 @@
 
 void Graph::connectEdgesToNodes(const std::vector<Node>& nodes, const std::vector<EdgeId>& edges)
 {
-  std::unordered_map<NodeId, NodePos> map;
-  map.reserve(nodes.size());
-  for (size_t i = 0; i < nodes.size(); i++) {
-    map.insert({ nodes[i].id(), NodePos{ i } });
+  if (nodes.empty()) {
+    return;
+  }
+  inEdges.reserve(edges.size());
+  outEdges.reserve(edges.size());
+
+  const auto max_id = std::max_element(
+      nodes.begin(), nodes.end(), [](const auto& a, const auto& b) { return a.id() < b.id(); });
+
+  std::vector<NodePos> map(max_id->id() + 1, NodePos{ 0 });
+  for (size_t i = 0; i < nodes.size(); ++i) {
+    map[nodes[i].id()] = NodePos{ i };
   }
 
   std::for_each(begin(edges), end(edges), [&map, this](const auto& id) {
@@ -90,11 +98,7 @@ void calculateOffsets(
 Graph::Graph(std::vector<Node>&& nodes, std::vector<Edge>&& edges)
     : edgeCount(edges.size())
 {
-  Edge::administerEdges(edges);
-  std::vector<EdgeId> ids;
-  ids.reserve(edgeCount);
-  std::transform(
-      edges.begin(), edges.end(), std::back_inserter(ids), [](auto e) { return e.getId(); });
+  auto ids = Edge::administerEdges(std::move(edges));
   init(std::move(nodes), std::move(ids));
 }
 Graph::Graph(std::vector<Node>&& nodes, std::vector<EdgeId>&& edges)
@@ -108,6 +112,7 @@ void Graph::init(std::vector<Node>&& nodes, std::vector<EdgeId>&& edges)
       [](const Node& a, const Node& b) { return a.getLevel() < b.getLevel(); });
 
   connectEdgesToNodes(nodes, edges);
+  level.reserve(nodes.size());
   for (const auto& node : nodes) {
     level.push_back(node.getLevel());
   }
@@ -268,16 +273,16 @@ void Graph::writeToStream(std::ostream& out) const
     node.writeToStream(out);
   }
 
-  std::vector<Edge> edges;
+  std::vector<EdgeId> edges;
   edges.reserve(inEdges.size());
 
   std::transform(inEdges.begin(), inEdges.end(), std::back_inserter(edges),
-      [](const auto& e) { return Edge::getEdge(e.id); });
+      [](const auto& e) { return e.id; });
 
-  std::sort(edges.begin(), edges.end(),
-      [](const auto& left, const auto& right) { return left.getId() < right.getId(); });
+  std::sort(edges.begin(), edges.end(), [](auto& a, auto& b) { return a.get() < b.get(); });
 
-  for (const auto& edge : edges) {
+  for (const auto& id : edges) {
+    auto& edge = Edge::getEdge(id);
     edge.writeToStream(out);
   }
 }

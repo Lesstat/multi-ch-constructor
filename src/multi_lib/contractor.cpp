@@ -545,9 +545,8 @@ Graph Contractor::contract(Graph& g)
             << '\n';
   shortcuts.erase(last, shortcuts.end());
 
-  Edge::administerEdges(shortcuts);
-  std::transform(shortcuts.begin(), shortcuts.end(), std::back_inserter(edges),
-      [](const auto& edge) { return edge.getId(); });
+  auto ids = Edge::administerEdges(std::move(shortcuts));
+  std::move(ids.begin(), ids.end(), std::back_inserter(edges));
 
   auto end = std::chrono::high_resolution_clock::now();
 
@@ -565,8 +564,12 @@ Graph Contractor::contract(Graph& g)
 Graph Contractor::mergeWithContracted(Graph& g)
 {
   std::vector<Node> nodes{};
+  nodes.reserve(contractedNodes.size() + g.getNodeCount());
+  std::move(contractedNodes.begin(), contractedNodes.end(), std::back_inserter(nodes));
+  contractedNodes = std::vector<Node>();
+
   std::vector<EdgeId> edges{};
-  std::copy(contractedNodes.begin(), contractedNodes.end(), std::back_inserter(nodes));
+  edges.reserve(contractedEdges.size() + g.getEdgeCount());
 
   ++level;
 
@@ -579,8 +582,10 @@ Graph Contractor::mergeWithContracted(Graph& g)
     std::transform(outEdges.begin(), outEdges.end(), std::back_inserter(edges),
         [](const auto& e) { return e.id; });
   }
+  g = Graph(std::vector<Node>(), std::vector<Edge>());
 
-  std::copy(contractedEdges.begin(), contractedEdges.end(), std::back_inserter(edges));
+  std::move(contractedEdges.begin(), contractedEdges.end(), std::back_inserter(edges));
+  contractedEdges = std::vector<EdgeId>();
 
   std::cout << "Final graph has " << nodes.size() << " nodes and " << edges.size() << " edges."
             << '\n';

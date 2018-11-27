@@ -151,7 +151,7 @@ class Edge {
 
   static Edge createFromText(const std::string& text);
   void writeToStream(std::ostream& out) const;
-  static void administerEdges(std::vector<Edge>& edges);
+  static std::vector<EdgeId> administerEdges(std::vector<Edge>&& edges);
   static const Edge& getEdge(EdgeId id);
   static Edge& getMutEdge(EdgeId id);
 
