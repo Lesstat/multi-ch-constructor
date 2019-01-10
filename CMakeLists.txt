@@ -18,7 +18,7 @@ include(cotire)
 
 find_package(glpk REQUIRED)
 
-find_package(Boost 1.58 REQUIRED COMPONENTS serialization program_options filesystem)
+find_package(Boost 1.58 REQUIRED COMPONENTS serialization program_options filesystem iostreams)
 find_package (Threads)
 
 find_package(glpk REQUIRED) 

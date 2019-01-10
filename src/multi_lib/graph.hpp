@@ -108,8 +108,8 @@ struct HalfEdge {
 };
 
 struct NodeOffset {
-  size_t in{ 0 };
-  size_t out{ 0 };
+  size_t in { 0 };
+  size_t out { 0 };
   NodeOffset() = default;
   NodeOffset(size_t in, size_t out)
       : in(in)

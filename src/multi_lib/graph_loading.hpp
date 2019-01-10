@@ -17,11 +17,14 @@
 */
 #include "graph.hpp"
 #include <boost/filesystem.hpp>
+#include <boost/iostreams/filter/gzip.hpp>
+#include <boost/iostreams/filtering_stream.hpp>
 #include <chrono>
 #include <fstream>
 #include <iostream>
 
 using ms = std::chrono::milliseconds;
+namespace iostr = boost::iostreams;
 
 Node createNode(std::ifstream& graph, std::ifstream& labels)
 {
@@ -32,7 +35,7 @@ Node createNode(std::ifstream& graph, std::ifstream& labels)
   graph >> id >> osmId >> lat >> lng >> height >> level;
   labels >> level;
 
-  Node n{ NodeId{ id }, osmId, Lat(lat), Lng(lng), height };
+  Node n { NodeId { id }, osmId, Lat(lat), Lng(lng), height };
   n.assignLevel(level);
   return n;
 }
@@ -47,10 +50,10 @@ Edge createEdge(std::ifstream& ch, std::ifstream& skips)
   ch >> source >> dest >> length >> height >> unsuitability;
   skips >> edgeA >> edgeB;
 
-  Edge e{ NodeId(source), NodeId(dest) };
+  Edge e { NodeId(source), NodeId(dest) };
   if (edgeA > 0) {
-    e.edgeA = EdgeId{ static_cast<size_t>(edgeA) };
-    e.edgeB = EdgeId{ static_cast<size_t>(edgeB) };
+    e.edgeA = EdgeId { static_cast<size_t>(edgeA) };
+    e.edgeB = EdgeId { static_cast<size_t>(edgeB) };
   }
 
   Cost cost({ length, height, unsuitability });
@@ -65,22 +68,22 @@ Graph readMultiFileGraph(std::string graphPath)
 
   auto directory = canonical(graphPath).parent_path();
 
-  path chGraph{ directory };
+  path chGraph { directory };
   chGraph /= "ch_graph";
 
-  path nodeLabels{ directory };
+  path nodeLabels { directory };
   nodeLabels /= "node_labels";
 
-  path skips{ directory };
+  path skips { directory };
   skips /= "skips";
 
-  std::ifstream graphFile{};
+  std::ifstream graphFile {};
   graphFile.open(graphPath);
 
-  std::ifstream chFile{};
+  std::ifstream chFile {};
   chFile.open(chGraph.string());
-  std::ifstream nodeLabelsFile{ nodeLabels.string() };
-  std::ifstream skipsFile{ skips.string() };
+  std::ifstream nodeLabelsFile { nodeLabels.string() };
+  std::ifstream skipsFile { skips.string() };
 
   std::cout << "Reading Graphdata" << '\n';
   auto start = std::chrono::high_resolution_clock::now();
@@ -116,7 +119,7 @@ Graph readMultiFileGraph(std::string graphPath)
   for (size_t i = 0; i < edgeCount; ++i) {
     edges.push_back(createEdge(chFile, skipsFile));
   }
-  Graph g{ std::move(nodes), std::move(edges) };
+  Graph g { std::move(nodes), std::move(edges) };
   auto end = std::chrono::high_resolution_clock::now();
 
   std::cout << "creating the graph took " << std::chrono::duration_cast<ms>(end - start).count()
@@ -124,17 +127,22 @@ Graph readMultiFileGraph(std::string graphPath)
   return g;
 }
 
-Graph loadGraphFromTextFile(std::string& graphPath)
+Graph loadGraphFromTextFile(std::string& graphPath, bool zipped)
 {
   const size_t N = 256 * 1024;
   char buffer[N];
-  std::ifstream graphFile{};
+  std::ifstream graphFile {};
   graphFile.rdbuf()->pubsetbuf((char*)buffer, N);
   graphFile.open(graphPath);
 
+  iostr::filtering_istream in;
+  if (zipped)
+    in.push(iostr::gzip_decompressor());
+  in.push(graphFile);
+
   std::cout << "Reading Graphdata" << '\n';
   auto start = std::chrono::high_resolution_clock::now();
-  Graph g = Graph::createFromStream(graphFile);
+  Graph g = Graph::createFromStream(in);
   auto end = std::chrono::high_resolution_clock::now();
 
   std::cout << "creating the graph took " << std::chrono::duration_cast<ms>(end - start).count()

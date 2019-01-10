@@ -19,6 +19,8 @@
 #include "dijkstra.hpp"
 #include "graph_loading.hpp"
 #include <boost/filesystem.hpp>
+#include <boost/iostreams/filter/gzip.hpp>
+#include <boost/iostreams/filtering_stream.hpp>
 #include <boost/program_options.hpp>
 #include <chrono>
 #include <fstream>
@@ -27,7 +29,7 @@
 
 Graph contractGraph(Graph& g, double rest, bool printStats, size_t maxThreads)
 {
-  Contractor c{ printStats, maxThreads };
+  Contractor c { printStats, maxThreads };
   auto start = std::chrono::high_resolution_clock::now();
   Graph ch = c.contractCompletely(g, rest);
   auto end = std::chrono::high_resolution_clock::now();
@@ -53,9 +55,9 @@ int testGraph(Graph& g)
 {
   Dijkstra d = g.createDijkstra();
   NormalDijkstra n = g.createNormalDijkstra(true);
-  std::random_device rd{};
+  std::random_device rd {};
   std::uniform_int_distribution<size_t> dist(0, g.getNodeCount() - 1);
-  Config c{ std::vector(Cost::dim, 1.0 / Cost::dim) };
+  Config c { std::vector(Cost::dim, 1.0 / Cost::dim) };
 
   size_t route = 0;
   size_t noRoute = 0;
@@ -64,8 +66,8 @@ int testGraph(Graph& g)
   size_t nTime = 0;
 
   for (int i = 0; i < 200; ++i) {
-    NodePos from{ dist(rd) };
-    NodePos to{ dist(rd) };
+    NodePos from { dist(rd) };
+    NodePos to { dist(rd) };
 
     auto dStart = std::chrono::high_resolution_clock::now();
     auto dRoute = d.findBestRoute(from, to, c);
@@ -168,30 +170,31 @@ int main(int argc, char* argv[])
 {
   std::cout.imbue(std::locale(""));
 
-  std::string loadFileName{};
-  std::string saveFileName{};
+  std::string loadFileName {};
+  std::string saveFileName {};
   double contractionPercent;
   size_t maxThreads = std::thread::hardware_concurrency();
 
-  po::options_description loading{ "loading options" };
-  loading.add_options()(
-      "text,t", po::value<std::string>(&loadFileName), "Load graph from text file")(
-      "multi,m", po::value<std::string>(&loadFileName), "Load graph from multiple files");
+  po::options_description loading { "loading options" };
+  loading.add_options()("text,t", po::value<std::string>(&loadFileName),
+      "Load graph from text file")("multi,m", po::value<std::string>(&loadFileName),
+      "Load graph from multiple files")("zi", "input text file is gzipped");
 
-  po::options_description contraction{ "contraction options" };
+  po::options_description contraction { "contraction options" };
   contraction.add_options()("percent,p", po::value<double>(&contractionPercent)->default_value(98),
       "How far the graph should be contracted");
   contraction.add_options()("stats", "Print statistics while contracting");
   contraction.add_options()("threads", po::value(&maxThreads), "Maximal number of threads used");
 
-  po::options_description saving{ "saving" };
-  saving.add_options()("write,w", po::value<std::string>(&saveFileName), "File to save graph to");
+  po::options_description saving { "saving" };
+  saving.add_options()("write,w", po::value<std::string>(&saveFileName), "File to save graph to")(
+      "zo", "gzip outfile");
 
   po::options_description all;
   all.add_options()("help,h", "Prints help message");
   all.add(loading).add(contraction).add(saving);
 
-  po::variables_map vm{};
+  po::variables_map vm {};
   po::store(po::parse_command_line(argc, argv, all), vm);
   po::notify(vm);
 
@@ -199,9 +202,10 @@ int main(int argc, char* argv[])
     std::cout << all << '\n';
     return 0;
   }
-  Graph g{ std::vector<Node>(), std::vector<Edge>() };
+  Graph g { std::vector<Node>(), std::vector<Edge>() };
   if (vm.count("text") > 0) {
-    g = loadGraphFromTextFile(loadFileName);
+    bool zipped_input = vm.count("zi") > 0;
+    g = loadGraphFromTextFile(loadFileName, zipped_input);
   } else if (vm.count("multi") > 0) {
     g = readMultiFileGraph(loadFileName);
   } else {
@@ -215,14 +219,23 @@ int main(int argc, char* argv[])
   g = contractGraph(g, 100 - contractionPercent, printStats, maxThreads);
 
   if (vm.count("write") > 0) {
+    namespace iostr = boost::iostreams;
     std::cout << "saving" << '\n';
-    std::ofstream outFile{ saveFileName };
-    outFile << "# Graph created at: " << return_current_time_and_date() << '\n';
-    outFile << "# Contracted to: " << contractionPercent << "%" << '\n';
-    outFile << "# Input Graphfile: " << loadFileName << '\n';
-    outFile << '\n';
+    std::ofstream outFile { saveFileName };
+    iostr::filtering_ostream out {};
+    if (vm.count("zo") > 0) {
+      iostr::gzip_params params {};
+      params.level = 9;
+      out.push(iostr::gzip_compressor(params));
+    }
+    out.push(outFile);
 
-    g.writeToStream(outFile);
+    out << "# Graph created at: " << return_current_time_and_date() << '\n';
+    out << "# Contracted to: " << contractionPercent << "%" << '\n';
+    out << "# Input Graphfile: " << loadFileName << '\n';
+    out << '\n';
+
+    g.writeToStream(out);
   }
   return testGraph(g);
 }
