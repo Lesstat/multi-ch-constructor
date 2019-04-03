@@ -30,7 +30,7 @@ target_include_directories(process SYSTEM INTERFACE vendor/boost-process)
 # Actual Implementation of project in static library
 file(GLOB lib_src src/multi_lib/*.cpp )
 add_library(multi_lib STATIC ${lib_src})
-target_include_directories(multi_lib PUBLIC src/multi_lib /usr/include/coin )
+target_include_directories(multi_lib PUBLIC src/multi_lib)
 target_link_libraries(multi_lib ${GLPK_LIBRARIES})
 target_link_libraries(multi_lib ${Boost_LIBRARIES})
 target_link_libraries(multi_lib -lm)
