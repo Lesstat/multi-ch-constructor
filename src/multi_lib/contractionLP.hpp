@@ -35,7 +35,7 @@ class ContractionLp {
   public:
   ContractionLp()
       : lp(dir / lp_executable, std::to_string(Cost::dim), bp::std_out > lpOutput,
-            bp::std_in < lpInput)
+          bp::std_in < lpInput)
   {
     variableValues_.reserve(Cost::dim);
   };
@@ -54,7 +54,10 @@ class ContractionLp {
   void addConstraint(const double (&coeff)[Cost::dim])
   {
     for (size_t i = 0; i < Cost::dim; ++i) {
-      lpInput << coeff[i] << ' ';
+      std::stringstream ss;
+      ss << std::fixed << std::setprecision(std::numeric_limits<long double>::digits10 + 1)
+         << coeff[i];
+      lpInput << ss.str() << ' ';
     }
     lpInput << '\n';
   }

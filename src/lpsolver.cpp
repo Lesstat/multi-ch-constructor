@@ -16,6 +16,7 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 #include "glpk.h"
+#include <iomanip>
 #include <iostream>
 #include <memory>
 #include <sstream>
@@ -128,7 +129,10 @@ int main(int /*argc*/, char* argv[])
     }
 
     for (size_t i = 1; i < varCount + 1; ++i) {
-      std::cout << glp_get_col_prim(lp.get(), i) << "\n";
+      std::stringstream ss;
+      ss << std::fixed << std::setprecision(std::numeric_limits<long double>::digits10 + 1)
+         << glp_get_col_prim(lp.get(), i);
+      std::cout << ss.str() << "\n";
     }
 
     if (!std::cin) {
