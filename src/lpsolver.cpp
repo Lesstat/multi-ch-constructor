@@ -33,9 +33,9 @@ void addVariables(glp_prob* lp, const int varCount)
   }
 
   // We want to maximize the epsilon
-  glp_set_col_bnds(lp, varCount - 1, GLP_LO, 0, 0);
-  glp_set_col_kind(lp, varCount - 1, GLP_CV);
-  glp_set_obj_coef(lp, varCount - 1, 1);
+  glp_set_col_bnds(lp, varCount, GLP_LO, 0, 0);
+  glp_set_col_kind(lp, varCount, GLP_CV);
+  glp_set_obj_coef(lp, varCount, 1);
 }
 
 void addSumEqOneConstraint(glp_prob* lp, const int varCount)
