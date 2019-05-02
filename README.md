@@ -17,10 +17,8 @@ cd multi-ch-constructor
 
 Then create a build directory for cmake and run cmake and make.
 ``` shell
-mkdir build
-cd build
-cmake ..
-make -j
+cmake -Bbuild
+cmake --build build
 ```
 
 # Usage
