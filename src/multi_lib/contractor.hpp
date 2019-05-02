@@ -19,6 +19,7 @@
 #define CONTRACTOR_H
 
 #include "ndijkstra.hpp"
+#include "threadpool.h"
 #include <future>
 #include <set>
 
@@ -37,8 +38,8 @@ class Contractor {
   Contractor() = delete;
   Contractor(bool printStatistics);
   Contractor(bool printStatistics, size_t maxThreads);
-  Contractor(const Contractor& other) = default;
-  Contractor(Contractor&& other) = default;
+  Contractor(const Contractor& other) = delete;
+  Contractor(Contractor&& other) = delete;
   virtual ~Contractor() noexcept;
   Contractor& operator=(const Contractor& other) = delete;
   Contractor& operator=(Contractor&& other) = delete;
@@ -66,6 +67,7 @@ class Contractor {
   bool printStatistics = false;
   const size_t THREAD_COUNT;
   std::vector<std::unique_ptr<ContractionLp>> lps;
+  ThreadPool tp;
 };
 
 #endif /* CONTRACTOR_H */

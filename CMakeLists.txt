@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(cycle-routing)
+project(multi-ch-constructor)
 add_compile_options(-Wall -Wextra -Wpedantic -std=c++17 -Wno-register)
 
 # Set a default build type if none was specified
@@ -27,6 +27,9 @@ find_package(glpk REQUIRED)
 add_library(process INTERFACE)
 target_include_directories(process SYSTEM INTERFACE vendor/boost-process)
 
+add_library(threadpool INTERFACE)
+target_include_directories(threadpool SYSTEM INTERFACE vendor/threadpool)
+
 # Actual Implementation of project in static library
 file(GLOB lib_src src/multi_lib/*.cpp )
 add_library(multi_lib STATIC ${lib_src})
@@ -37,6 +40,7 @@ target_link_libraries(multi_lib -lm)
 target_link_libraries(multi_lib -ldl)
 target_link_libraries(multi_lib ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(multi_lib process)
+target_link_libraries(multi_lib threadpool)
 
 
 # Executable of project links against lib
@@ -46,5 +50,6 @@ target_link_libraries(multi-ch multi_lib)
 
 add_executable(multi_lp src/lpsolver.cpp)
 target_link_libraries(multi_lp ${GLPK_LIBRARIES})
+
 
 cotire(multi_lib multi-ch)

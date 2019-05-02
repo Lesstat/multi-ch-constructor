@@ -15,6 +15,7 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
 #include "contractor.hpp"
 #include "contractionLP.hpp"
 #include "multiqueue.hpp"
@@ -28,7 +29,7 @@ class StatisticsCollector {
   enum class CountType { shortestPath, repeatingConfig, toManyConstraints };
 
   StatisticsCollector(bool active)
-      : active(active){};
+      : active(active) {};
   StatisticsCollector(const StatisticsCollector& other) = default;
   StatisticsCollector(StatisticsCollector&& other) noexcept = default;
   virtual ~StatisticsCollector() noexcept
@@ -82,7 +83,7 @@ class StatisticsCollector {
   size_t constMax = 0;
   static std::mutex key;
 };
-std::mutex StatisticsCollector::key{};
+std::mutex StatisticsCollector::key {};
 
 std::pair<bool, std::optional<RouteWithCount>> checkShortestPath(
     NormalDijkstra& d, const HalfEdge& startEdge, const HalfEdge& destEdge, const Config& conf)
@@ -99,8 +100,8 @@ std::pair<bool, std::optional<RouteWithCount>> checkShortestPath(
 }
 
 class ContractingThread {
-  MultiQueue<EdgePair>& queue;
-  Graph& graph;
+  MultiQueue<EdgePair>* queue;
+  Graph* graph;
   StatisticsCollector stats;
   Config config;
   ContractionLp* lp;
@@ -116,17 +117,39 @@ class ContractingThread {
   const std::set<NodePos>& set;
 
   public:
-  ContractingThread(MultiQueue<EdgePair>& queue, Graph& g, const std::set<NodePos>& set,
+  ContractingThread(MultiQueue<EdgePair>* queue, Graph* g, const std::set<NodePos>& set,
       ContractionLp* lp, bool printStatistics)
       : queue(queue)
       , graph(g)
       , stats(printStatistics)
       , config(std::vector(Cost::dim, 1.0 / Cost::dim))
       , lp(lp)
-      , d(g.createNormalDijkstra())
+      , d(g->createNormalDijkstra())
       , set(set)
   {
-    shortcuts.reserve(graph.getNodeCount());
+    shortcuts.reserve(graph->getNodeCount());
+  }
+
+  ContractingThread(const ContractingThread& c)
+      : queue(c.queue)
+      , graph(c.graph)
+      , stats(c.stats)
+      , config(c.config)
+      , lp(c.lp)
+      , d(c.d)
+      , set(c.set)
+  {
+  }
+
+  ContractingThread(const ContractingThread&& c)
+      : queue(std::move(c.queue))
+      , graph(std::move(c.graph))
+      , stats(std::move(c.stats))
+      , config(std::move(c.config))
+      , lp(std::move(c.lp))
+      , d(std::move(c.d))
+      , set(std::move(c.set))
+  {
   }
 
   bool isDominated(const Cost& costs)
@@ -223,8 +246,8 @@ class ContractingThread {
     std::vector<EdgePair> messages;
     while (true) {
       messages.clear();
-      if (queue.receive_some(messages, 20) == 0 && queue.closed()) {
-        return shortcuts;
+      if (queue->receive_some(messages, 20) == 0 && queue->closed()) {
+        return std::move(shortcuts);
       }
       for (auto& pair : messages) {
         bool warm = false;
@@ -238,7 +261,7 @@ class ContractingThread {
         out = pair.out;
 
         std::vector<double> coeff(Cost::dim, 1.0 / Cost::dim);
-        config = Config{ coeff };
+        config = Config { coeff };
         shortcutCost = in.cost + out.cost;
 
         if (!warm) {
@@ -282,7 +305,7 @@ class ContractingThread {
           }
           auto values = lp->variableValues();
 
-          Config newConfig{ values };
+          Config newConfig { values };
           if (newConfig == config) {
             sameCount++;
             if (currentCost * config >= shortcutCost * config - 0.000001) {
@@ -320,13 +343,14 @@ class ContractingThread {
 
 Contractor::Contractor(bool printStatistics)
     : Contractor(printStatistics,
-          std::thread::hardware_concurrency() > 0 ? std::thread::hardware_concurrency() : 1)
+        std::thread::hardware_concurrency() > 0 ? std::thread::hardware_concurrency() : 1)
 {
 }
 
 Contractor::Contractor(bool printStatistics, size_t maxThreads)
     : printStatistics(printStatistics)
     , THREAD_COUNT(maxThreads)
+    , tp(maxThreads)
 {
 
   while (lps.size() < THREAD_COUNT) {
@@ -345,7 +369,7 @@ Edge Contractor::createShortcut(const Edge& e1, const Edge& e2)
   if (e1.getDestId() != e2.getSourceId()) {
     throw std::invalid_argument("Edges are not connected");
   }
-  Edge shortcut{ e1.getSourceId(), e2.getDestId(), e1.getId(), e2.getId() };
+  Edge shortcut { e1.getSourceId(), e2.getDestId(), e1.getId(), e2.getId() };
   shortcut.setCost(e1.getCost() + e2.getCost());
   return shortcut;
 }
@@ -353,7 +377,9 @@ Edge Contractor::createShortcut(const Edge& e1, const Edge& e2)
 std::future<std::vector<Edge>> Contractor::contract(
     MultiQueue<EdgePair>& queue, Graph& g, ContractionLp* lp, const std::set<NodePos>& set)
 {
-  return std::async(std::launch::async, ContractingThread{ queue, g, set, lp, printStatistics });
+  // return std::async(std::launch::async, ContractingThread { &queue, &g, set, lp, printStatistics
+  // });
+  return tp.enqueue(ContractingThread { &queue, &g, set, lp, printStatistics });
 }
 
 std::set<NodePos> Contractor::independentSet(const Graph& g)
@@ -364,7 +390,7 @@ std::set<NodePos> Contractor::independentSet(const Graph& g)
   nodes.reserve(nodeCount);
 
   for (size_t i = 0; i < nodeCount; ++i) {
-    NodePos p{ i };
+    NodePos p { i };
     auto inEdges = g.getIngoingEdgesOf(p);
     auto outEdges = g.getOutgoingEdgesOf(p);
     size_t count = (inEdges.end() - inEdges.begin()) * (outEdges.end() - outEdges.begin());
@@ -394,7 +420,7 @@ std::set<NodePos> Contractor::independentSet(const Graph& g)
 
 std::set<NodePos> Contractor::reduce(std::set<NodePos>& set, const Graph& g)
 {
-  std::vector<std::pair<size_t, NodePos>> metric{};
+  std::vector<std::pair<size_t, NodePos>> metric {};
   metric.reserve(set.size());
 
   std::transform(set.begin(), set.end(), std::back_inserter(metric), [&g](NodePos p) {
@@ -409,7 +435,7 @@ std::set<NodePos> Contractor::reduce(std::set<NodePos>& set, const Graph& g)
 
   std::nth_element(metric.begin(), median, metric.end());
 
-  std::set<NodePos> result{};
+  std::set<NodePos> result {};
   std::transform(metric.begin(), median, std::inserter(result, result.begin()),
       [](auto pair) { return std::get<NodePos>(pair); });
 
@@ -431,7 +457,7 @@ void copyEdgesOfNode(Graph& g, NodePos pos, std::vector<EdgeId>& edges)
 Graph Contractor::contract(Graph& g)
 {
   auto start = std::chrono::high_resolution_clock::now();
-  MultiQueue<EdgePair> q{};
+  MultiQueue<EdgePair> q {};
 
   ++level;
   auto set = reduce(independentSet(g), g);
@@ -439,13 +465,13 @@ Graph Contractor::contract(Graph& g)
   for (size_t i = 0; i < THREAD_COUNT; ++i) {
     futures.push_back(contract(q, g, lps[i].get(), set));
   }
-  std::vector<Node> nodes{};
-  std::vector<EdgeId> edges{};
-  std::vector<NodePos> nodesToContract{};
+  std::vector<Node> nodes {};
+  std::vector<EdgeId> edges {};
+  std::vector<NodePos> nodesToContract {};
   nodesToContract.reserve(set.size());
 
   for (size_t i = 0; i < g.getNodeCount(); ++i) {
-    NodePos pos{ i };
+    NodePos pos { i };
     if (set.find(pos) == set.end()) {
       nodes.push_back(g.getNode(pos));
       for (const auto& edge : g.getOutgoingEdgesOf(pos)) {
@@ -477,7 +503,7 @@ Graph Contractor::contract(Graph& g)
         if (in.end == out.end) {
           continue;
         }
-        pairs.push_back(EdgePair{ in, out });
+        pairs.push_back(EdgePair { in, out });
         ++edgePairCount;
         if (pairs.size() >= batchSize) {
           q.send(pairs);
@@ -493,7 +519,7 @@ Graph Contractor::contract(Graph& g)
     StatisticsCollector::printHeader();
   }
 
-  std::vector<Edge> shortcuts{};
+  std::vector<Edge> shortcuts {};
   for (size_t i = 0; i < futures.size(); ++i) {
     auto shortcutsMsg = futures[i].get();
     std::move(shortcutsMsg.begin(), shortcutsMsg.end(), std::back_inserter(shortcuts));
@@ -537,6 +563,8 @@ Graph Contractor::contract(Graph& g)
             << '\n';
   shortcuts.erase(last, shortcuts.end());
 
+  std::cout << "..."
+            << "Created " << shortcuts.size() << " shortcuts." << '\n';
   auto ids = Edge::administerEdges(std::move(shortcuts));
   std::move(ids.begin(), ids.end(), std::back_inserter(edges));
 
@@ -546,27 +574,25 @@ Graph Contractor::contract(Graph& g)
   std::cout << "..."
             << "Last contraction step took " << std::chrono::duration_cast<s>(end - start).count()
             << "s" << '\n';
-  std::cout << "..."
-            << "Created " << shortcuts.size() << " shortcuts." << '\n';
   shortcuts.clear();
 
-  return Graph{ std::move(nodes), std::move(edges) };
+  return Graph { std::move(nodes), std::move(edges) };
 }
 
 Graph Contractor::mergeWithContracted(Graph& g)
 {
-  std::vector<Node> nodes{};
+  std::vector<Node> nodes {};
   nodes.reserve(contractedNodes.size() + g.getNodeCount());
   std::move(contractedNodes.begin(), contractedNodes.end(), std::back_inserter(nodes));
   contractedNodes = std::vector<Node>();
 
-  std::vector<EdgeId> edges{};
+  std::vector<EdgeId> edges {};
   edges.reserve(contractedEdges.size() + g.getEdgeCount());
 
   ++level;
 
   for (size_t i = 0; i < g.getNodeCount(); ++i) {
-    NodePos pos{ i };
+    NodePos pos { i };
     auto node = g.getNode(pos);
     node.assignLevel(level);
     nodes.push_back(node);
@@ -581,7 +607,7 @@ Graph Contractor::mergeWithContracted(Graph& g)
 
   std::cout << "Final graph has " << nodes.size() << " nodes and " << edges.size() << " edges."
             << '\n';
-  return Graph{ std::move(nodes), std::move(edges) };
+  return Graph { std::move(nodes), std::move(edges) };
 }
 
 Graph Contractor::contractCompletely(Graph& g, double rest)
