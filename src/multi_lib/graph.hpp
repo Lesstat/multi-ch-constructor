@@ -19,8 +19,10 @@
 #define GRAPH_H
 
 #include "namedType.hpp"
+
 #include <atomic>
 #include <fstream>
+#include <iostream>
 #include <optional>
 #include <set>
 #include <unordered_set>
@@ -42,7 +44,7 @@ struct Config;
 
 struct Cost {
   static const size_t dim = 3;
-  double values[dim];
+  std::array<double, dim> values;
   Cost(const std::vector<double>& values)
   {
     for (size_t i = 0; i < dim; ++i) {
@@ -58,7 +60,21 @@ struct Cost {
       values[i] = 0;
     }
   }
-  Cost(const double values[Cost::dim])
+  Cost(const Cost& other) { values = other.values; }
+  Cost operator=(const Cost& other)
+  {
+    values = other.values;
+    return *this;
+  }
+
+  Cost(Cost&& other) noexcept { values = other.values; }
+  Cost operator=(Cost&& other) noexcept
+  {
+    values = other.values;
+    return *this;
+  }
+
+  Cost(const std::array<double, Cost::dim> values)
   {
     for (size_t i = 0; i < dim; ++i) {
       this->values[i] = values[i];
@@ -71,7 +87,7 @@ struct Cost {
 
   Cost operator+(const Cost& c) const
   {
-    double newValues[Cost::dim];
+    std::array<double, Cost::dim> newValues;
     for (size_t i = 0; i < dim; ++i) {
       newValues[i] = values[i] + c.values[i];
     }
@@ -79,7 +95,7 @@ struct Cost {
   };
   Cost operator-(const Cost& c) const
   {
-    double newValues[Cost::dim];
+    std::array<double, Cost::dim> newValues;
     for (size_t i = 0; i < dim; ++i) {
       newValues[i] = values[i] - c.values[i];
     }

@@ -21,7 +21,7 @@
 #include <cassert>
 #include <sstream>
 
-std::vector<Edge> Edge::edges{};
+std::vector<Edge> Edge::edges {};
 
 Edge::Edge(NodeId source, NodeId dest)
     : Edge(source, dest, {}, {})
@@ -52,7 +52,7 @@ Edge Edge::createFromText(const std::string& text)
 {
 
   size_t source, dest;
-  double cost[Cost::dim];
+  std::array<double, Cost::dim> cost;
   long edgeA, edgeB;
 
   std::stringstream ss(text);
@@ -63,10 +63,10 @@ Edge Edge::createFromText(const std::string& text)
   }
   ss >> edgeA >> edgeB;
 
-  Edge e{ NodeId(source), NodeId(dest) };
+  Edge e { NodeId(source), NodeId(dest) };
   if (edgeA > 0) {
-    e.edgeA = EdgeId{ static_cast<size_t>(edgeA) };
-    e.edgeB = EdgeId{ static_cast<size_t>(edgeB) };
+    e.edgeA = EdgeId { static_cast<size_t>(edgeA) };
+    e.edgeB = EdgeId { static_cast<size_t>(edgeB) };
   }
   e.cost = Cost(cost);
   for (double c : e.cost.values) {
@@ -125,7 +125,7 @@ std::vector<EdgeId> Edge::administerEdges(std::vector<Edge>&& edges)
     size_t new_id = Edge::edges.size() + i;
     auto& edge = edges[i];
     if (edge.getId() == 0) {
-      edge.setId(EdgeId{ new_id });
+      edge.setId(EdgeId { new_id });
     } else if (edge.getId() != new_id) {
       std::cerr << "Edge ids dont align: " << '\n';
       std::terminate();

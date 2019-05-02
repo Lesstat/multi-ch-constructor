@@ -56,7 +56,7 @@ Edge createEdge(std::ifstream& ch, std::ifstream& skips)
     e.edgeB = EdgeId { static_cast<size_t>(edgeB) };
   }
 
-  Cost cost({ length, height, unsuitability });
+  Cost cost(std::array<double, Cost::dim> { length, height, unsuitability });
 
   e.setCost(cost);
   return e;

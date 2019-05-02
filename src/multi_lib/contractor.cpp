@@ -133,7 +133,7 @@ class ContractingThread {
   {
     bool dominated = true;
     bool someDifferent = false;
-    for (size_t i = 0; i <= Cost::dim; i++) {
+    for (size_t i = 0; i < Cost::dim; i++) {
       if (costs.values[i] > shortcutCost.values[i]) {
         dominated = false;
         someDifferent = true;
@@ -203,16 +203,8 @@ class ContractingThread {
 
   void dedupConstraints()
   {
-    std::sort(constraints.begin(), constraints.end(), [](const Cost& left, const Cost& right) {
-      for (size_t i = 0; i < Cost::dim; ++i) {
-        if (left.values[i] < right.values[i]) {
-          return true;
-        } else if (left.values[i] > right.values[i]) {
-          return false;
-        }
-      }
-      return true;
-    });
+    std::sort(constraints.begin(), constraints.end(),
+        [](const auto& a, const auto& b) { return a.values < b.values; });
 
     auto last = std::unique(
         constraints.begin(), constraints.end(), [](const Cost& left, const Cost& right) {

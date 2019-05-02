@@ -22,6 +22,8 @@
 #include "graph.hpp"
 #include "io.hpp"
 #include <boost/dll.hpp>
+#include <iomanip>
+#include <sstream>
 
 const auto dir = boost::dll::program_location().parent_path();
 const auto lp_executable = "multi_lp";
@@ -51,7 +53,7 @@ class ContractionLp {
   ContractionLp& operator=(const ContractionLp& other) = delete;
   ContractionLp& operator=(ContractionLp&& other) = default;
 
-  void addConstraint(const double (&coeff)[Cost::dim])
+  void addConstraint(const std::array<double, Cost::dim>& coeff)
   {
     for (size_t i = 0; i < Cost::dim; ++i) {
       std::stringstream ss;
