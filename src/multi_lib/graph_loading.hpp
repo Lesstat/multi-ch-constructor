@@ -35,7 +35,10 @@ Node createNode(std::ifstream& graph, std::ifstream& labels)
   graph >> id >> osmId >> lat >> lng >> height >> level;
   labels >> level;
 
-  Node n { NodeId { id }, osmId, Lat(lat), Lng(lng), height };
+  std::string external_id = std::to_string(id);
+  external_id.insert(0, "n");
+
+  Node n { external_id, NodeId { id } }; //, osmId, Lat(lat), Lng(lng), height };
   n.assignLevel(level);
   return n;
 }

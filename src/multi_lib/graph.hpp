@@ -21,12 +21,15 @@
 #include "namedType.hpp"
 
 #include <atomic>
+#include <boost/property_map/dynamic_property_map.hpp>
 #include <fstream>
 #include <iostream>
 #include <optional>
 #include <set>
 #include <unordered_set>
 #include <vector>
+
+boost::dynamic_properties graph_properties;
 
 using OsmId = NamedType<size_t, struct OsmIdParameter>;
 using NodeId = NamedType<size_t, struct NodeIdParameter>;
@@ -194,7 +197,8 @@ class Edge {
 class Node {
   public:
   Node() = default;
-  Node(NodeId id, size_t osmId, Lat lat, Lng lng, double height);
+  Node(const std::string& external_node_id,
+      NodeId id); //, size_t osmId, Lat lat, Lng lng, double height);
   Node(const Node& other) = default;
   Node(Node&& other) noexcept = default;
   virtual ~Node() noexcept = default;
@@ -210,19 +214,20 @@ class Node {
   void writeToStream(std::ostream& out) const;
   friend void testNodeInternals(const Node& n, NodeId id, Lat lat, Lng lng, size_t level);
 
-  Lat lat() const;
-  Lng lng() const;
-  short height() const;
+  // Lat lat() const;
+  // Lng lng() const;
+  // short height() const;
 
   private:
   friend class boost::serialization::access;
 
+  std::string external_node_id_;
   NodeId id_;
-  size_t osmId;
-  Lat lat_;
-  Lng lng_;
+  // size_t osmId;
+  // Lat lat_;
+  // Lng lng_;
   size_t level = 0;
-  double height_;
+  // double height_;
 };
 
 class Grid;

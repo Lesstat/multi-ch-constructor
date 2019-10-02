@@ -17,13 +17,10 @@
 */
 #include "graph.hpp"
 
-Node::Node(NodeId id, size_t osmId, Lat lat, Lng lng, double height)
-    : id_(id)
-    , osmId(osmId)
-    , lat_(lat)
-    , lng_(lng)
+Node::Node(const std::string& external_id, NodeId id)
+    : external_node_id_(external_id)
+    , id_(id)
     , level(0)
-    , height_(height)
 {
 }
 
@@ -33,9 +30,9 @@ void Node::assignLevel(size_t level) { this->level = level; }
 
 NodeId Node::id() const { return id_; }
 
-Lat Node::lat() const { return lat_; }
-Lng Node::lng() const { return lng_; }
-short Node::height() const { return height_; }
+// Lat Node::lat() const { return lat_; }
+// Lng Node::lng() const { return lng_; }
+// short Node::height() const { return height_; }
 
 std::ostream& operator<<(std::ostream& os, const Node& n)
 {
@@ -52,13 +49,15 @@ Node Node::createFromText(const std::string& text)
   std::sscanf(
       text.c_str(), "%lu%lu%lf%lf%lf%lu", &id, &osmId, &lat, &lng, &height, &level); // NOLINT
 
-  Node n{ NodeId{ id }, osmId, Lat(lat), Lng(lng), height };
+  Node n { std::to_string(id), NodeId { id } };
   n.level = level;
   return n;
 }
 
 void Node::writeToStream(std::ostream& out) const
 {
-  out << id_ << ' ' << osmId << ' ' << lat_ << ' ' << lng_ << ' ' << height_ << ' ' << level
-      << '\n';
+  out << id_ << ' ' << get("osmId", graph_properties, external_node_id_) << ' '
+      << get("lat", graph_properties, external_node_id_) << ' '
+      << get("lng", graph_properties, external_node_id_) << ' '
+      << get("height", graph_properties, external_node_id_) << ' ' << level << '\n';
 }
