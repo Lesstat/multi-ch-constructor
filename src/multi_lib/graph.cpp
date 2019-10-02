@@ -20,6 +20,8 @@
 #include <future>
 #include <iomanip>
 
+#include <boost/property_map/property_map.hpp>
+
 void Graph::connectEdgesToNodes(const std::vector<Node>& nodes, const std::vector<EdgeId>& edges)
 {
   if (nodes.empty()) {
@@ -31,9 +33,9 @@ void Graph::connectEdgesToNodes(const std::vector<Node>& nodes, const std::vecto
   const auto max_id = std::max_element(
       nodes.begin(), nodes.end(), [](const auto& a, const auto& b) { return a.id() < b.id(); });
 
-  std::vector<NodePos> map(max_id->id() + 1, NodePos{ 0 });
+  std::vector<NodePos> map(max_id->id() + 1, NodePos { 0 });
   for (size_t i = 0; i < nodes.size(); ++i) {
-    map[nodes[i].id()] = NodePos{ i };
+    map[nodes[i].id()] = NodePos { i };
   }
 
   std::for_each(begin(edges), end(edges), [&map, this](const auto& id) {
@@ -119,7 +121,7 @@ void Graph::init(std::vector<Node>&& nodes, std::vector<EdgeId>&& edges)
   this->nodes = std::move(nodes);
   offsets.reserve(this->nodes.size() + 1);
   for (size_t i = 0; i < this->nodes.size() + 1; ++i) {
-    offsets.emplace_back(NodeOffset{});
+    offsets.emplace_back(NodeOffset {});
   }
 
   auto fut = std::async(
@@ -150,11 +152,11 @@ std::ostream& operator<<(std::ostream& s, const Graph& g)
 
 std::vector<NodeOffset> const& Graph::getOffsets() const { return offsets; }
 
-Dijkstra Graph::createDijkstra() { return Dijkstra{ this, nodes.size() }; }
+Dijkstra Graph::createDijkstra() { return Dijkstra { this, nodes.size() }; }
 
 NormalDijkstra Graph::createNormalDijkstra(bool unpack)
 {
-  return NormalDijkstra{ this, nodes.size(), unpack };
+  return NormalDijkstra { this, nodes.size(), unpack };
 }
 
 size_t readCount(std::istream& file)
@@ -166,7 +168,7 @@ size_t readCount(std::istream& file)
 
 template <class Obj> void parseLines(std::vector<Obj>& v, std::istream& file, size_t count)
 {
-  std::string line{};
+  std::string line {};
   for (size_t i = 0; i < count; ++i) {
     std::getline(file, line);
     v.push_back(Obj::createFromText(line));
@@ -176,9 +178,9 @@ template <class Obj> void parseLines(std::vector<Obj>& v, std::istream& file, si
 Graph Graph::createFromStream(std::istream& file)
 {
   file >> std::setprecision(7);
-  std::vector<Node> nodes{};
-  std::vector<Edge> edges{};
-  std::string line{};
+  std::vector<Node> nodes {};
+  std::vector<Edge> edges {};
+  std::string line {};
 
   std::getline(file, line);
   while (line.front() == '#') {
@@ -200,7 +202,7 @@ Graph Graph::createFromStream(std::istream& file)
   parseLines(nodes, file, nodeCount);
   parseLines(edges, file, edgeCount);
 
-  return Graph{ std::move(nodes), std::move(edges) };
+  return Graph { std::move(nodes), std::move(edges) };
 }
 
 const Node& Graph::getNode(NodePos pos) const { return nodes[pos]; }
@@ -211,7 +213,7 @@ EdgeRange Graph::getOutgoingEdgesOf(NodePos pos) const
   std::advance(start, offsets[pos].out);
   auto end = outEdges.begin();
   std::advance(end, offsets[pos + 1].out);
-  return EdgeRange{ start, end };
+  return EdgeRange { start, end };
 }
 
 EdgeRange Graph::getIngoingEdgesOf(NodePos pos) const
@@ -220,7 +222,7 @@ EdgeRange Graph::getIngoingEdgesOf(NodePos pos) const
   std::advance(start, offsets[pos].in);
   auto end = inEdges.begin();
   std::advance(end, offsets[pos + 1].in);
-  return EdgeRange{ start, end };
+  return EdgeRange { start, end };
 }
 
 size_t Graph::getLevelOf(NodePos pos) const { return level[pos]; }
@@ -229,7 +231,7 @@ std::optional<NodePos> Graph::nodePosById(NodeId id) const
 {
   for (size_t i = 0; i < nodes.size(); ++i) {
     if (nodes[i].id() == id) {
-      return NodePos{ i };
+      return NodePos { i };
     }
   }
   return {};
@@ -260,7 +262,7 @@ std::unordered_map<NodeId, const Node*> Graph::getNodePosByIds(
 
 NodePos Graph::getNodePos(const Node* n) const
 {
-  return NodePos{ static_cast<size_t>(n - nodes.data()) };
+  return NodePos { static_cast<size_t>(n - nodes.data()) };
 }
 
 void Graph::writeToStream(std::ostream& out) const
@@ -286,3 +288,30 @@ void Graph::writeToStream(std::ostream& out) const
     edge.writeToStream(out);
   }
 }
+
+std::optional<boost::dynamic_properties> graph_properties;
+std::map<std::string, size_t> node2osmid;
+std::map<std::string, double> node2lat;
+std::map<std::string, double> node2lng;
+std::map<std::string, double> node2height;
+
+boost::dynamic_properties& get_graph_properties()
+{
+  if (!graph_properties) {
+    graph_properties = boost::dynamic_properties();
+
+    boost::associative_property_map<decltype(node2osmid)> osmId_map(node2osmid);
+    graph_properties->property("osmId", osmId_map);
+
+    boost::associative_property_map<decltype(node2lat)> lat_map(node2lat);
+    graph_properties->property("lat", lat_map);
+
+    boost::associative_property_map<decltype(node2lng)> lng_map(node2lng);
+    graph_properties->property("lng", lng_map);
+
+    boost::associative_property_map<decltype(node2height)> height_map(node2height);
+    graph_properties->property("height", height_map);
+  }
+
+  return *graph_properties;
+};

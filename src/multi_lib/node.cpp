@@ -49,15 +49,33 @@ Node Node::createFromText(const std::string& text)
   std::sscanf(
       text.c_str(), "%lu%lu%lf%lf%lf%lu", &id, &osmId, &lat, &lng, &height, &level); // NOLINT
 
-  Node n { std::to_string(id), NodeId { id } };
+  std::string external_id = std::to_string(id);
+  external_id.insert(0, "n");
+
+  Node n { external_id, NodeId { id } };
+
+  auto& graph_properties = get_graph_properties();
+
+  std::cout << "putting " << osmId << "for " << external_id << '\n';
+  put("osmId", graph_properties, external_id, osmId);
+  std::cout << "putting " << lat << "for " << external_id << '\n';
+  put("lat", graph_properties, external_id, lat);
+  std::cout << "putting " << lng << "for " << external_id << '\n';
+  put("lng", graph_properties, external_id, lng);
+  std::cout << "putting " << height << "for " << external_id << '\n';
+  put("height", graph_properties, external_id, height);
+
   n.level = level;
   return n;
 }
 
 void Node::writeToStream(std::ostream& out) const
 {
-  out << id_ << ' ' << get("osmId", graph_properties, external_node_id_) << ' '
-      << get("lat", graph_properties, external_node_id_) << ' '
-      << get("lng", graph_properties, external_node_id_) << ' '
-      << get("height", graph_properties, external_node_id_) << ' ' << level << '\n';
+  const auto& graph_properties = get_graph_properties();
+  size_t osm_id = get<size_t>("osmId", graph_properties, external_node_id_);
+  double lat = get<double>("lat", graph_properties, external_node_id_);
+  double lng = get<double>("lng", graph_properties, external_node_id_);
+  double height = get<double>("height", graph_properties, external_node_id_);
+
+  out << id_ << ' ' << osm_id << ' ' << lat << ' ' << lng << ' ' << height << ' ' << level << '\n';
 }

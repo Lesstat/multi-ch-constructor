@@ -29,7 +29,7 @@
 #include <unordered_set>
 #include <vector>
 
-boost::dynamic_properties graph_properties;
+boost::dynamic_properties& get_graph_properties();
 
 using OsmId = NamedType<size_t, struct OsmIdParameter>;
 using NodeId = NamedType<size_t, struct NodeIdParameter>;

@@ -39,6 +39,15 @@ Node createNode(std::ifstream& graph, std::ifstream& labels)
   external_id.insert(0, "n");
 
   Node n { external_id, NodeId { id } }; //, osmId, Lat(lat), Lng(lng), height };
+
+  auto& graph_properties = get_graph_properties();
+
+  std::cout << "putting " << osmId << "for " << external_id << '\n';
+  put("osmId", graph_properties, external_id, osmId);
+  put("lat", graph_properties, external_id, lat);
+  put("lng", graph_properties, external_id, lng);
+  put("height", graph_properties, external_id, height);
+
   n.assignLevel(level);
   return n;
 }
