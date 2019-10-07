@@ -113,7 +113,16 @@ HalfEdge Edge::makeHalfEdge(NodePos begin, NodePos end) const
   return e;
 }
 
-void Edge::setId(EdgeId id) { this->internalId = id; }
+void Edge::setId(EdgeId id)
+{
+  this->internalId = id;
+  this->external_id_ = std::to_string(id);
+  if (edgeA && edgeB) {
+    this->external_id_.insert(0, "ch");
+  } else {
+    this->external_id_.insert(0, "e");
+  }
+}
 
 double HalfEdge::costByConfiguration(const Config& conf) const { return cost * conf; }
 

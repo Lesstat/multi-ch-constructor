@@ -182,6 +182,7 @@ class Edge {
   private:
   friend class boost::serialization::access;
 
+  std::string external_id_;
   EdgeId internalId;
   NodeId source;
   NodeId destination;
