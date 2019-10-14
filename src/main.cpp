@@ -18,6 +18,7 @@
 #include "contractor.hpp"
 #include "dijkstra.hpp"
 #include "graph_loading.hpp"
+#include "graphml.hpp"
 #include <boost/filesystem.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
 #include <boost/iostreams/filtering_stream.hpp>
@@ -176,9 +177,14 @@ int main(int argc, char* argv[])
   size_t maxThreads = std::thread::hardware_concurrency();
 
   po::options_description loading { "loading options" };
-  loading.add_options()("text,t", po::value<std::string>(&loadFileName),
-      "Load graph from text file")("multi,m", po::value<std::string>(&loadFileName),
-      "Load graph from multiple files")("zi", "input text file is gzipped");
+
+  // clang-format off
+  loading.add_options()
+    ("text,t", po::value<std::string>(&loadFileName), "Load graph from text file")
+    ("multi,m", po::value<std::string>(&loadFileName), "Load graph from multiple files")
+    ("graphml,g", po::value<std::string>(&loadFileName), "Load garph from graphml file")
+    ("zi", "input text file is gzipped");
+  // clang-format on
 
   po::options_description contraction { "contraction options" };
   contraction.add_options()("percent,p", po::value<double>(&contractionPercent)->default_value(98),
@@ -187,8 +193,13 @@ int main(int argc, char* argv[])
   contraction.add_options()("threads", po::value(&maxThreads), "Maximal number of threads used");
 
   po::options_description saving { "saving" };
-  saving.add_options()("write,w", po::value<std::string>(&saveFileName), "File to save graph to")(
-      "zo", "gzip outfile");
+
+  // clang-format off
+  saving.add_options()
+    ("write,w", po::value<std::string>(&saveFileName), "File to save graph to")
+    ("zo", "gzip outfile")
+    ("write-graphml,wg", po::value<std::string>(&saveFileName), "Graphml file to save graph to.");
+  // clang-format on
 
   po::options_description all;
   all.add_options()("help,h", "Prints help message");
@@ -208,6 +219,8 @@ int main(int argc, char* argv[])
     g = loadGraphFromTextFile(loadFileName, zipped_input);
   } else if (vm.count("multi") > 0) {
     g = readMultiFileGraph(loadFileName);
+  } else if (vm.count("graphml") > 0) {
+    g = read_graphml(loadFileName);
   } else {
     std::cout << "No input file given" << '\n';
     std::cout << all << '\n';
