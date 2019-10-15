@@ -13,7 +13,7 @@
 #include <iostream>
 #include <utility>
 
-template <class Graph> class create_property_maps {
+template <class Graph> class dynamic_property_store {
   using vert_id = typename boost::graph_traits<Graph>::vertex_descriptor;
   using edge_id = typename boost::graph_traits<Graph>::edge_descriptor;
 
@@ -88,8 +88,8 @@ Graph read_graphml(const std::string& loadFileName)
 
   boost::adjacency_list<> boost_graph;
 
-  create_property_maps<decltype(boost_graph)> inst;
-  boost::dynamic_properties graph_properties(inst);
+  dynamic_property_store<decltype(boost_graph)> store;
+  boost::dynamic_properties graph_properties(store);
 
   boost::read_graphml(graph_stream, boost_graph, graph_properties);
 
