@@ -46,15 +46,6 @@ void addSumEqOneConstraint(glp_prob* lp, const int varCount)
   for (size_t i = 0; i < ind.size(); ++i) {
     ind[i] = i;
   }
-  for (auto& i : ind) {
-    std::cout << i << ", ";
-  }
-  std::cout << '\n';
-
-  for (auto& i : val) {
-    std::cout << i << ", ";
-  }
-  std::cout << '\n';
 
   glp_set_row_bnds(lp, row, GLP_FX, 1, 1);
   glp_set_mat_row(lp, row, varCount, &ind[0], &val[0]);
@@ -132,7 +123,6 @@ int main(int /*argc*/, char* argv[])
     glp_init_smcp(&params);
     params.presolve = GLP_ON;
     params.msg_lev = GLP_MSG_OFF;
-    glp_write_lp(lp.get(), nullptr, "/tmp/text.lp");
     int status = glp_simplex(lp.get(), &params);
     if (status == 0) {
       status = glp_get_status(lp.get());
@@ -145,16 +135,16 @@ int main(int /*argc*/, char* argv[])
       continue;
     }
 
-    for (size_t i = 1; i < varCount + 1; ++i) {
+    for (size_t i = 0; i < varCount; ++i) {
       std::stringstream ss;
       ss << std::fixed << std::setprecision(std::numeric_limits<long double>::digits10 + 1)
-         << glp_get_col_prim(lp.get(), i);
+         << glp_get_col_prim(lp.get(), i + 1);
       std::cout << ss.str() << "\n";
     }
 
-    // if (!std::cin) {
-    active = false;
-    // }
+    if (!std::cin) {
+      active = false;
+    }
   }
 
   return 0;
