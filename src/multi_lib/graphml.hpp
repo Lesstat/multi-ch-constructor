@@ -98,6 +98,9 @@ Graph read_graphml(const std::string& loadFileName)
     auto out_edges = boost::out_edges(*vert, boost_graph);
     for (auto edge = out_edges.first; edge != out_edges.second; ++edge) {
       auto& my_edge = edges.emplace_back(NodeId { edge->m_source }, NodeId { edge->m_target });
+
+      my_edge.set_extrenal_id(store.edge_info_maps["name"][*edge]);
+
       Cost c;
       size_t idx = 0;
       for (auto it = store.edge_cost_maps.begin(); it != store.edge_cost_maps.end(); ++it) {

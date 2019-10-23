@@ -126,7 +126,7 @@ void Edge::setId(EdgeId id)
   }
 }
 
-void set_extrenal_id(const std::string& external_id) { external_id_ = external_id; }
+void Edge::set_extrenal_id(const std::string& external_id) { external_id_ = external_id; }
 
 double HalfEdge::costByConfiguration(const Config& conf) const { return cost * conf; }
 
