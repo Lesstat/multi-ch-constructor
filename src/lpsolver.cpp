@@ -26,16 +26,14 @@
 void addVariables(glp_prob* lp, const int varCount)
 {
   glp_add_cols(lp, varCount);
-  for (int i = 0; i < varCount - 1; ++i) {
+  for (int i = 0; i < varCount; ++i) {
+    std::stringstream ss;
+    ss << "cost " << i + 1;
     glp_set_col_bnds(lp, i + 1, GLP_DB, 0, 1);
     glp_set_col_kind(lp, i + 1, GLP_CV);
     glp_set_obj_coef(lp, i + 1, 0);
+    glp_set_col_name(lp, i + 1, ss.str().data());
   }
-
-  // We want to maximize the epsilon
-  glp_set_col_bnds(lp, varCount, GLP_LO, 0, 0);
-  glp_set_col_kind(lp, varCount, GLP_CV);
-  glp_set_obj_coef(lp, varCount, 1);
 }
 
 void addSumEqOneConstraint(glp_prob* lp, const int varCount)
@@ -44,11 +42,20 @@ void addSumEqOneConstraint(glp_prob* lp, const int varCount)
 
   std::vector<int> ind(varCount + 1, 0);
   std::vector<double> val(varCount + 1, 1);
-  val[varCount] = 0; // Epsilon is not part of this constraint
 
-  for (int i = 0; i < varCount + 1; ++i) {
+  for (size_t i = 0; i < ind.size(); ++i) {
     ind[i] = i;
   }
+  for (auto& i : ind) {
+    std::cout << i << ", ";
+  }
+  std::cout << '\n';
+
+  for (auto& i : val) {
+    std::cout << i << ", ";
+  }
+  std::cout << '\n';
+
   glp_set_row_bnds(lp, row, GLP_FX, 1, 1);
   glp_set_mat_row(lp, row, varCount, &ind[0], &val[0]);
 }
@@ -69,10 +76,20 @@ bool readConstraints(glp_prob* lp, const size_t varCount)
     if (stringValues.size() == 0) {
       break;
     }
-    if (stringValues.size() != varCount - 1) {
+    if (stringValues.size() != varCount) {
       std::cerr << "Incorrect number of coefficients " << stringValues.size() << "\n";
       return false;
     }
+
+    // We want to maximize the deltas
+    int delta_col = glp_add_cols(lp, 1);
+    std::string delta = "delta ";
+    delta.append(std::to_string(delta_col));
+
+    glp_set_col_bnds(lp, delta_col, GLP_LO, 0, 0);
+    glp_set_col_kind(lp, delta_col, GLP_CV);
+    glp_set_obj_coef(lp, delta_col, 1);
+    glp_set_col_name(lp, delta_col, delta.data());
 
     int row = glp_add_rows(lp, 1);
     std::vector<int> ind(1, 0);
@@ -84,10 +101,10 @@ bool readConstraints(glp_prob* lp, const size_t varCount)
     }
 
     // Epsilon
-    ind.push_back(i++);
+    ind.push_back(delta_col);
     val.push_back(-1);
     glp_set_row_bnds(lp, row, GLP_LO, 0.0, 0);
-    glp_set_mat_row(lp, row, varCount, &ind[0], &val[0]);
+    glp_set_mat_row(lp, row, varCount + 1, &ind[0], &val[0]);
   }
   return true;
 }
@@ -97,8 +114,7 @@ bool active = true;
 int main(int /*argc*/, char* argv[])
 {
   // Input is component count of alpha
-  // We add an aditional epsilon variable
-  const size_t varCount = std::stoull(argv[1]) + 1;
+  const size_t varCount = std::stoull(argv[1]);
 
   while (active) {
     std::unique_ptr<glp_prob, void (*)(glp_prob*)> lp(glp_create_prob(), glp_delete_prob);
@@ -116,6 +132,7 @@ int main(int /*argc*/, char* argv[])
     glp_init_smcp(&params);
     params.presolve = GLP_ON;
     params.msg_lev = GLP_MSG_OFF;
+    glp_write_lp(lp.get(), nullptr, "/tmp/text.lp");
     int status = glp_simplex(lp.get(), &params);
     if (status == 0) {
       status = glp_get_status(lp.get());
@@ -135,9 +152,9 @@ int main(int /*argc*/, char* argv[])
       std::cout << ss.str() << "\n";
     }
 
-    if (!std::cin) {
-      active = false;
-    }
+    // if (!std::cin) {
+    active = false;
+    // }
   }
 
   return 0;
