@@ -81,7 +81,7 @@ class ContractionLp {
       lpOutput >> coeff;
       variableValues_.push_back(coeff);
     }
-    lpOutput >> epsilon_;
+    // lpOutput >> epsilon_;
 
     return true;
   }

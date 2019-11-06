@@ -310,27 +310,28 @@ class ContractingThread {
             sameCount++;
             if (currentCost * config >= shortcutCost * config - 0.000001) {
 
-              auto routeIter = d.routeIter(in.end, out.end);
-              bool shortcutNecessary = true;
-              RouteWithCount reason;
-              while (!routeIter.finished()) {
-                auto route = routeIter.next();
-                if (!route) {
-                  break;
-                }
+              // auto routeIter = d.routeIter(in.end, out.end);
+              // bool shortcutNecessary = true;
+              // RouteWithCount reason;
+              // while (!routeIter.finished()) {
+              //   auto route = routeIter.next();
+              //   if (!route) {
+              //     break;
+              //   }
 
-                if (std::all_of(route->edges.begin(), route->edges.end(), [this](const auto& id) {
-                      auto node = Edge::getEdge(id).destPos();
-                      return set.count(node) == 0;
-                    })) {
-                  shortcutNecessary = false;
-                  reason = *route;
-                  break;
-                }
-              }
-              if (shortcutNecessary) {
-                storeShortcut(StatisticsCollector::CountType::repeatingConfig);
-              }
+              //   if (std::all_of(route->edges.begin(), route->edges.end(), [this](const auto& id)
+              //   {
+              //         auto node = Edge::getEdge(id).destPos();
+              //         return set.count(node) == 0;
+              //       })) {
+              //     shortcutNecessary = false;
+              //     reason = *route;
+              //     break;
+              //   }
+              // }
+              // if (shortcutNecessary) {
+              storeShortcut(StatisticsCollector::CountType::repeatingConfig);
+              // }
             }
             break;
           }
