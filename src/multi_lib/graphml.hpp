@@ -48,6 +48,8 @@ template <class Graph> class dynamic_property_store {
         map = create_map(key, vert_cost_maps);
       } else if (value.type() == typeid(bool)) {
         map = create_map(key, vert_bool_maps);
+      } else {
+        std::cout << "Upps no map found for vert_index and " << value.type().name() << '\n';
       }
 
     } else if (descriptor.type() == typeid(edge_id)) {
@@ -57,6 +59,8 @@ template <class Graph> class dynamic_property_store {
         map = create_map(key, edge_cost_maps);
       } else if (value.type() == typeid(bool)) {
         map = create_map(key, edge_bool_maps);
+      } else {
+        std::cout << "Upps no map found for edge_index and " << value.type().name() << '\n';
       }
     }
 
@@ -72,18 +76,17 @@ template <class Graph> class dynamic_property_store {
   }
 };
 
+std::optional<boost::dynamic_properties> graph_properties;
+dynamic_property_store<boost::adjacency_list<>> store;
+
+boost::adjacency_list<> boost_graph;
+
 Graph read_graphml(const std::string& loadFileName)
 {
 
   std::ifstream graph_stream(loadFileName);
 
-  boost::adjacency_list<> boost_graph;
-
-  dynamic_property_store<decltype(boost_graph)> store;
-  boost::dynamic_properties graph_properties(
-      [&store](const std::string& key, const boost::any& descriptor, const boost::any& value) {
-        return store(key, descriptor, value);
-      });
+  auto& graph_properties = get_graph_properties();
 
   boost::read_graphml(graph_stream, boost_graph, graph_properties);
 
@@ -93,7 +96,7 @@ Graph read_graphml(const std::string& loadFileName)
   std::vector<Edge> edges;
   for (auto vert = vertices.first; vert != vertices.second; ++vert) {
     std::string id = boost::get("id", graph_properties, *vert);
-    nodes.emplace_back(id, NodeId { *vert });
+    nodes.emplace_back(*vert, NodeId { *vert });
 
     auto out_edges = boost::out_edges(*vert, boost_graph);
     for (auto edge = out_edges.first; edge != out_edges.second; ++edge) {
@@ -104,6 +107,11 @@ Graph read_graphml(const std::string& loadFileName)
       Cost c;
       size_t idx = 0;
       for (auto it = store.edge_cost_maps.begin(); it != store.edge_cost_maps.end(); ++it) {
+        if (idx >= Cost::dim) {
+          std::cerr << "Graph file has more than " << Cost::dim << " metrics." << '\n';
+          std::cerr << "Please recompile code for correct amount of metrics" << '\n';
+          std::exit(2);
+        }
         c.values[idx] = it->second[*edge];
         ++idx;
       }
@@ -115,4 +123,62 @@ Graph read_graphml(const std::string& loadFileName)
 
   return g;
 };
+
+boost::dynamic_properties& get_graph_properties()
+{
+  if (!graph_properties) {
+    graph_properties = boost::dynamic_properties(
+        [](const std::string& key, const boost::any& descriptor, const boost::any& value) {
+          return store(key, descriptor, value);
+        });
+  }
+
+  return *graph_properties;
+};
+
+void write_graphml(std::ostream& outfile, const Graph& g)
+{
+
+  auto& graph_properties = get_graph_properties();
+
+  bool has_edges = false;
+  auto [begin, end] = edges(boost_graph);
+
+  for (auto& e = begin; e != end; ++e) {
+    has_edges = true;
+    std::string no_replace = "-1";
+    put("edgeA", graph_properties, *e, no_replace);
+    put("edgeB", graph_properties, *e, no_replace);
+  }
+
+  for (size_t i = 0; i < g.getNodeCount(); ++i) {
+    NodePos pos { i };
+    const auto& n = g.getNode(pos);
+    put("level", graph_properties, n.id(), n.getLevel());
+
+    for (const auto& e : g.getOutgoingEdgesOf(pos)) {
+
+      const auto& edge = Edge::getEdge(e.id);
+      // properties speichern
+      if (!has_edges || edge.getEdgeA()) {
+        auto [descriptor, inserted] = boost::add_edge(e.begin, e.end, boost_graph);
+
+        const auto& edgeA = Edge::getEdge(*edge.getEdgeA());
+        const auto& edgeB = Edge::getEdge(*edge.getEdgeB());
+
+        put("edgeA", graph_properties, descriptor, edgeA.external_id());
+        put("edgeB", graph_properties, descriptor, edgeB.external_id());
+        put("name", graph_properties, descriptor, edge.external_id());
+        size_t idx = 0;
+        for (auto it = store.edge_cost_maps.begin(); it != store.edge_cost_maps.end(); ++it) {
+          it->second[descriptor] = e.cost.values[idx];
+          ++idx;
+        }
+      }
+    }
+  }
+
+  boost::write_graphml(outfile, boost_graph, graph_properties);
+}
+
 #endif /* GRAPHML_H */

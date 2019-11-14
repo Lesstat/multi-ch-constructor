@@ -164,6 +164,7 @@ class Edge {
   void setId(EdgeId id);
 
   void set_extrenal_id(const std::string& external_id);
+  const std::string& external_id() const;
   const Cost& getCost() const;
   double costByConfiguration(const Config& conf) const;
   void setCost(Cost c);
@@ -200,7 +201,7 @@ class Edge {
 class Node {
   public:
   Node() = default;
-  Node(const std::string& external_node_id,
+  Node(const size_t external_node_id,
       NodeId id); //, size_t osmId, Lat lat, Lng lng, double height);
   Node(const Node& other) = default;
   Node(Node&& other) noexcept = default;
@@ -224,7 +225,7 @@ class Node {
   private:
   friend class boost::serialization::access;
 
-  std::string external_node_id_;
+  size_t external_node_id_;
   NodeId id_;
   // size_t osmId;
   // Lat lat_;

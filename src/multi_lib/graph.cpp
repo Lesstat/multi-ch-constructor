@@ -288,30 +288,3 @@ void Graph::writeToStream(std::ostream& out) const
     edge.writeToStream(out);
   }
 }
-
-std::optional<boost::dynamic_properties> graph_properties;
-std::map<std::string, size_t> node2osmid;
-std::map<std::string, double> node2lat;
-std::map<std::string, double> node2lng;
-std::map<std::string, double> node2height;
-
-boost::dynamic_properties& get_graph_properties()
-{
-  if (!graph_properties) {
-    graph_properties = boost::dynamic_properties();
-
-    boost::associative_property_map<decltype(node2osmid)> osmId_map(node2osmid);
-    graph_properties->property("osmId", osmId_map);
-
-    boost::associative_property_map<decltype(node2lat)> lat_map(node2lat);
-    graph_properties->property("lat", lat_map);
-
-    boost::associative_property_map<decltype(node2lng)> lng_map(node2lng);
-    graph_properties->property("lng", lng_map);
-
-    boost::associative_property_map<decltype(node2height)> height_map(node2height);
-    graph_properties->property("height", height_map);
-  }
-
-  return *graph_properties;
-};

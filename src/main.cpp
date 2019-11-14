@@ -249,6 +249,19 @@ int main(int argc, char* argv[])
     out << '\n';
 
     g.writeToStream(out);
+  } else if (vm.count("write-graphml") > 0) {
+    std::cout << "saving" << '\n';
+    std::ofstream outFile { saveFileName };
+    iostr::filtering_ostream out {};
+    if (vm.count("zo") > 0) {
+      iostr::gzip_params params {};
+      params.level = 9;
+      out.push(iostr::gzip_compressor(params));
+    }
+    out.push(outFile);
+
+    write_graphml(out, g);
   }
+
   return testGraph(g);
 }

@@ -17,7 +17,7 @@
 */
 #include "graph.hpp"
 
-Node::Node(const std::string& external_id, NodeId id)
+Node::Node(const size_t external_id, NodeId id)
     : external_node_id_(external_id)
     , id_(id)
     , level(0)
@@ -49,21 +49,15 @@ Node Node::createFromText(const std::string& text)
   std::sscanf(
       text.c_str(), "%lu%lu%lf%lf%lf%lu", &id, &osmId, &lat, &lng, &height, &level); // NOLINT
 
-  std::string external_id = std::to_string(id);
-  external_id.insert(0, "n");
-
-  Node n { external_id, NodeId { id } };
+  Node n { id, NodeId { id } };
 
   auto& graph_properties = get_graph_properties();
 
-  std::cout << "putting " << osmId << "for " << external_id << '\n';
-  put("osmId", graph_properties, external_id, osmId);
-  std::cout << "putting " << lat << "for " << external_id << '\n';
-  put("lat", graph_properties, external_id, lat);
-  std::cout << "putting " << lng << "for " << external_id << '\n';
-  put("lng", graph_properties, external_id, lng);
-  std::cout << "putting " << height << "for " << external_id << '\n';
-  put("height", graph_properties, external_id, height);
+  auto osm_id_string = std::to_string(osmId);
+  put("osmId", graph_properties, n.external_node_id_, osm_id_string);
+  put("lat", graph_properties, n.external_node_id_, lat);
+  put("lng", graph_properties, n.external_node_id_, lng);
+  put("height", graph_properties, n.external_node_id_, height);
 
   n.level = level;
   return n;
@@ -72,10 +66,16 @@ Node Node::createFromText(const std::string& text)
 void Node::writeToStream(std::ostream& out) const
 {
   const auto& graph_properties = get_graph_properties();
-  size_t osm_id = get<size_t>("osmId", graph_properties, external_node_id_);
-  double lat = get<double>("lat", graph_properties, external_node_id_);
-  double lng = get<double>("lng", graph_properties, external_node_id_);
-  double height = get<double>("height", graph_properties, external_node_id_);
 
-  out << id_ << ' ' << osm_id << ' ' << lat << ' ' << lng << ' ' << height << ' ' << level << '\n';
+  try {
+    std::string osm_id = get<std::string>("osmId", graph_properties, external_node_id_);
+    double lat = get<double>("lat", graph_properties, external_node_id_);
+    double lng = get<double>("lng", graph_properties, external_node_id_);
+    double height = get<double>("height", graph_properties, external_node_id_);
+
+    out << id_ << ' ' << osm_id << ' ' << lat << ' ' << lng << ' ' << height << ' ' << level
+        << '\n';
+  } catch (boost::wrapexcept<boost::dynamic_get_failure>& e) {
+    std::cout << "failed: " << e.what() << '\n';
+  }
 }

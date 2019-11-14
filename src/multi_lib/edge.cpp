@@ -133,6 +133,8 @@ void Edge::setId(EdgeId id)
 
 void Edge::set_extrenal_id(const std::string& external_id) { external_id_ = external_id; }
 
+const std::string& Edge::external_id() const { return external_id_; }
+
 double HalfEdge::costByConfiguration(const Config& conf) const { return cost * conf; }
 
 std::vector<EdgeId> Edge::administerEdges(std::vector<Edge>&& edges)
