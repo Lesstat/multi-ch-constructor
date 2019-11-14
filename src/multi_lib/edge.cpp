@@ -19,6 +19,7 @@
 #include "graph.hpp"
 #include <algorithm>
 #include <cassert>
+#include <cstdlib>
 #include <sstream>
 
 std::vector<Edge> Edge::edges {};
@@ -34,7 +35,11 @@ Edge::Edge(NodeId source, NodeId dest, ReplacedEdge edgeA, ReplacedEdge edgeB)
     , edgeA(std::move(edgeA))
     , edgeB(std::move(edgeB))
 {
-  assert(source != dest);
+  if (edgeA && source == dest) {
+    std::cout << "same source and target for shortcuts not allowed: " << source << " , " << dest
+              << '\n';
+    std::exit(1);
+  }
   if (edges.size() > 0 && (edgeA || edgeB)) {
     auto& e1 = Edge::getEdge(*edgeA);
     auto& e2 = Edge::getEdge(*edgeB);
