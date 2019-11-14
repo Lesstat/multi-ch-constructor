@@ -38,7 +38,7 @@ Node createNode(std::ifstream& graph, std::ifstream& labels)
   // std::string external_id = std::to_string(id);
   // external_id.insert(0, "n");
 
-  Node n { id, NodeId { id } }; //, osmId, Lat(lat), Lng(lng), height };
+  Node n { std::to_string(id), NodeId { id } }; //, osmId, Lat(lat), Lng(lng), height };
 
   auto& graph_properties = get_graph_properties();
 

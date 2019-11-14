@@ -95,8 +95,8 @@ Graph read_graphml(const std::string& loadFileName)
   std::vector<Node> nodes;
   std::vector<Edge> edges;
   for (auto vert = vertices.first; vert != vertices.second; ++vert) {
-    std::string id = boost::get("id", graph_properties, *vert);
-    nodes.emplace_back(*vert, NodeId { *vert });
+    std::string id = boost::get("name", graph_properties, *vert);
+    nodes.emplace_back(id, NodeId { *vert });
 
     auto out_edges = boost::out_edges(*vert, boost_graph);
     for (auto edge = out_edges.first; edge != out_edges.second; ++edge) {
@@ -161,7 +161,10 @@ void write_graphml(std::ostream& outfile, const Graph& g)
       const auto& edge = Edge::getEdge(e.id);
       // properties speichern
       if (!has_edges || edge.getEdgeA()) {
-        auto [descriptor, inserted] = boost::add_edge(e.begin, e.end, boost_graph);
+        const auto& start_node = g.getNode(e.begin);
+        const auto& dest_node = g.getNode(e.end);
+
+        auto [descriptor, inserted] = boost::add_edge(start_node.id(), dest_node.id(), boost_graph);
 
         const auto& edgeA = Edge::getEdge(*edge.getEdgeA());
         const auto& edgeB = Edge::getEdge(*edge.getEdgeB());

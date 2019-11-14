@@ -46,7 +46,7 @@ class NormalDijkstra;
 struct Config;
 
 struct Cost {
-  static const size_t dim = 3;
+  static const size_t dim = 4;
   std::array<double, dim> values;
   Cost(const std::vector<double>& values)
   {
@@ -201,7 +201,7 @@ class Edge {
 class Node {
   public:
   Node() = default;
-  Node(const size_t external_node_id,
+  Node(const std::string external_node_id,
       NodeId id); //, size_t osmId, Lat lat, Lng lng, double height);
   Node(const Node& other) = default;
   Node(Node&& other) noexcept = default;
@@ -218,6 +218,8 @@ class Node {
   void writeToStream(std::ostream& out) const;
   friend void testNodeInternals(const Node& n, NodeId id, Lat lat, Lng lng, size_t level);
 
+  const std::string& external_id() const;
+
   // Lat lat() const;
   // Lng lng() const;
   // short height() const;
@@ -225,7 +227,7 @@ class Node {
   private:
   friend class boost::serialization::access;
 
-  size_t external_node_id_;
+  std::string external_node_id_;
   NodeId id_;
   // size_t osmId;
   // Lat lat_;

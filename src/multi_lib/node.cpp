@@ -17,7 +17,7 @@
 */
 #include "graph.hpp"
 
-Node::Node(const size_t external_id, NodeId id)
+Node::Node(const std::string external_id, NodeId id)
     : external_node_id_(external_id)
     , id_(id)
     , level(0)
@@ -49,7 +49,7 @@ Node Node::createFromText(const std::string& text)
   std::sscanf(
       text.c_str(), "%lu%lu%lf%lf%lf%lu", &id, &osmId, &lat, &lng, &height, &level); // NOLINT
 
-  Node n { id, NodeId { id } };
+  Node n { std::to_string(id), NodeId { id } };
 
   auto& graph_properties = get_graph_properties();
 
@@ -68,10 +68,10 @@ void Node::writeToStream(std::ostream& out) const
   const auto& graph_properties = get_graph_properties();
 
   try {
-    std::string osm_id = get<std::string>("osmId", graph_properties, external_node_id_);
-    double lat = get<double>("lat", graph_properties, external_node_id_);
-    double lng = get<double>("lng", graph_properties, external_node_id_);
-    double height = get<double>("height", graph_properties, external_node_id_);
+    std::string osm_id = get<std::string>("osmId", graph_properties, id_.get());
+    double lat = get<double>("lat", graph_properties, id_.get());
+    double lng = get<double>("lng", graph_properties, id_.get());
+    double height = get<double>("height", graph_properties, id_.get());
 
     out << id_ << ' ' << osm_id << ' ' << lat << ' ' << lng << ' ' << height << ' ' << level
         << '\n';
@@ -79,3 +79,5 @@ void Node::writeToStream(std::ostream& out) const
     std::cout << "failed: " << e.what() << '\n';
   }
 }
+
+const std::string& Node::external_id() const { return external_node_id_; }
