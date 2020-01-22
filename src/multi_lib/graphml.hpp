@@ -21,6 +21,7 @@ template <class Graph> class dynamic_property_store {
   using vert_info_map = std::map<vert_id, std::string>;
   using vert_bool_map = std::map<vert_id, bool>;
   using vert_cost_map = std::map<vert_id, double>;
+  using vert_level_map = std::map<vert_id, size_t>;
 
   using edge_info_map = std::map<edge_id, std::string>;
   using edge_bool_map = std::map<edge_id, bool>;
@@ -29,6 +30,7 @@ template <class Graph> class dynamic_property_store {
   std::map<std::string, vert_cost_map> vert_cost_maps;
   std::map<std::string, vert_bool_map> vert_bool_maps;
   std::map<std::string, vert_info_map> vert_info_maps;
+  std::map<std::string, vert_level_map> vert_level_maps;
 
   std::map<std::string, edge_cost_map> edge_cost_maps;
   std::map<std::string, edge_bool_map> edge_bool_maps;
@@ -48,8 +50,11 @@ template <class Graph> class dynamic_property_store {
         map = create_map(key, vert_cost_maps);
       } else if (value.type() == typeid(bool)) {
         map = create_map(key, vert_bool_maps);
+      } else if (value.type() == typeid(size_t)) {
+        map = create_map(key, vert_level_maps);
       } else {
         std::cout << "Upps no map found for vert_index and " << value.type().name() << '\n';
+        std::exit(3);
       }
 
     } else if (descriptor.type() == typeid(edge_id)) {
@@ -61,7 +66,12 @@ template <class Graph> class dynamic_property_store {
         map = create_map(key, edge_bool_maps);
       } else {
         std::cout << "Upps no map found for edge_index and " << value.type().name() << '\n';
+        std::exit(3);
       }
+    } else {
+      std::cout << "Key is neither vertex nor edge descriptor: " << descriptor.type().name()
+                << '\n';
+      std::exit(4);
     }
 
     return map;
@@ -154,7 +164,7 @@ void write_graphml(std::ostream& outfile, const Graph& g)
   for (size_t i = 0; i < g.getNodeCount(); ++i) {
     NodePos pos { i };
     const auto& n = g.getNode(pos);
-    put("level", graph_properties, n.id(), n.getLevel());
+    put("level", graph_properties, n.id().get(), n.getLevel());
 
     for (const auto& e : g.getOutgoingEdgesOf(pos)) {
 
@@ -164,7 +174,8 @@ void write_graphml(std::ostream& outfile, const Graph& g)
         const auto& start_node = g.getNode(e.begin);
         const auto& dest_node = g.getNode(e.end);
 
-        auto [descriptor, inserted] = boost::add_edge(start_node.id(), dest_node.id(), boost_graph);
+        auto [descriptor, inserted]
+            = boost::add_edge(start_node.id().get(), dest_node.id().get(), boost_graph);
 
         const auto& edgeA = Edge::getEdge(*edge.getEdgeA());
         const auto& edgeB = Edge::getEdge(*edge.getEdgeB());
