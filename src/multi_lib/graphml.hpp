@@ -104,12 +104,17 @@ Graph read_graphml(const std::string& loadFileName)
 
   std::vector<Node> nodes;
   std::vector<Edge> edges;
+  auto self_loops = 0;
   for (auto vert = vertices.first; vert != vertices.second; ++vert) {
     std::string id = boost::get("name", graph_properties, *vert);
     nodes.emplace_back(id, NodeId { *vert });
 
     auto out_edges = boost::out_edges(*vert, boost_graph);
     for (auto edge = out_edges.first; edge != out_edges.second; ++edge) {
+      if (edge->m_source == edge->m_target) {
+        self_loops++;
+        continue;
+      }
       auto& my_edge = edges.emplace_back(NodeId { edge->m_source }, NodeId { edge->m_target });
 
       my_edge.set_extrenal_id(store.edge_info_maps["name"][*edge]);
@@ -128,6 +133,8 @@ Graph read_graphml(const std::string& loadFileName)
       my_edge.setCost(c);
     }
   }
+
+  std::cout << "Ignored " << self_loops << " self loop edges" << '\n';
 
   Graph g { std::move(nodes), std::move(edges) };
 
