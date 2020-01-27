@@ -13,6 +13,8 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
 endif()
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 include(cotire)
 
@@ -51,5 +53,12 @@ target_link_libraries(multi-ch multi_lib)
 add_executable(multi_lp src/lpsolver.cpp)
 target_link_libraries(multi_lp ${GLPK_LIBRARIES})
 
-
 cotire(multi_lib multi-ch)
+
+# Definition of Testing library catch
+add_library(catch INTERFACE)
+target_include_directories(catch INTERFACE vendor/catch)
+
+file(GLOB test_src test/*.cpp)
+add_executable(ch_test ${test_src})
+target_link_libraries(ch_test multi_lib catch)

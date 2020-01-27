@@ -54,10 +54,10 @@ Node Node::createFromText(const std::string& text)
   auto& graph_properties = get_graph_properties();
 
   auto osm_id_string = std::to_string(osmId);
-  put("osmId", graph_properties, n.external_node_id_, osm_id_string);
-  put("lat", graph_properties, n.external_node_id_, lat);
-  put("lng", graph_properties, n.external_node_id_, lng);
-  put("height", graph_properties, n.external_node_id_, height);
+  put("osmId", graph_properties, id, osm_id_string);
+  put("lat", graph_properties, id, lat);
+  put("lng", graph_properties, id, lng);
+  put("height", graph_properties, id, height);
 
   n.level = level;
   return n;
@@ -66,12 +66,13 @@ Node Node::createFromText(const std::string& text)
 void Node::writeToStream(std::ostream& out) const
 {
   const auto& graph_properties = get_graph_properties();
+  size_t id = std::stoi(external_node_id_);
 
   try {
-    std::string osm_id = get<std::string>("osmId", graph_properties, id_.get());
-    double lat = get<double>("lat", graph_properties, id_.get());
-    double lng = get<double>("lng", graph_properties, id_.get());
-    double height = get<double>("height", graph_properties, id_.get());
+    std::string osm_id = get<std::string>("osmId", graph_properties, id);
+    double lat = get<double>("lat", graph_properties, id);
+    double lng = get<double>("lng", graph_properties, id);
+    double height = get<double>("height", graph_properties, id);
 
     out << id_ << ' ' << osm_id << ' ' << lat << ' ' << lng << ' ' << height << ' ' << level
         << '\n';

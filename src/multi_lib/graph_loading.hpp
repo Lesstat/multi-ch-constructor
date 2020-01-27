@@ -54,23 +54,32 @@ Node createNode(std::ifstream& graph, std::ifstream& labels)
 Edge createEdge(std::ifstream& ch, std::ifstream& skips)
 {
 
-  size_t source, dest;
-  double length, height, unsuitability;
-  long edgeA, edgeB;
+  if constexpr (Cost::dim == 3) {
+    size_t source, dest;
+    double length, height, unsuitability;
+    long edgeA, edgeB;
 
-  ch >> source >> dest >> length >> height >> unsuitability;
-  skips >> edgeA >> edgeB;
+    ch >> source >> dest >> length >> height >> unsuitability;
+    skips >> edgeA >> edgeB;
 
-  Edge e { NodeId(source), NodeId(dest) };
-  if (edgeA > 0) {
-    e.edgeA = EdgeId { static_cast<size_t>(edgeA) };
-    e.edgeB = EdgeId { static_cast<size_t>(edgeB) };
-  }
+    Edge e { NodeId(source), NodeId(dest) };
+    if (edgeA > 0) {
+      e.edgeA = EdgeId { static_cast<size_t>(edgeA) };
+      e.edgeB = EdgeId { static_cast<size_t>(edgeB) };
+    }
+    std::vector<double> c;
+    c.push_back(length);
+    c.push_back(height);
+    c.push_back(unsuitability);
 
-  Cost cost(std::array<double, Cost::dim> { length, height, unsuitability });
+    Cost cost(c);
 
-  e.setCost(cost);
-  return e;
+    e.setCost(cost);
+    return e;
+  } else {
+    std::cerr << "Multi file loading currently only works for dimension 3" << '\n';
+    std::exit(2);
+  };
 }
 
 Graph readMultiFileGraph(std::string graphPath)
