@@ -286,7 +286,7 @@ class ContractingThread {
         }
 
         lpCount = 0;
-        auto sameCount = 0;
+        size_t sameCount = 0;
         while (true) {
 
           if (testConfig(config)) {
@@ -310,28 +310,12 @@ class ContractingThread {
             sameCount++;
             if (currentCost * config >= shortcutCost * config - 0.000001) {
 
-              // auto routeIter = d.routeIter(in.end, out.end);
-              // bool shortcutNecessary = true;
-              // RouteWithCount reason;
-              // while (!routeIter.finished()) {
-              //   auto route = routeIter.next();
-              //   if (!route) {
-              //     break;
-              //   }
-
-              //   if (std::all_of(route->edges.begin(), route->edges.end(), [this](const auto& id)
-              //   {
-              //         auto node = Edge::getEdge(id).destPos();
-              //         return set.count(node) == 0;
-              //       })) {
-              //     shortcutNecessary = false;
-              //     reason = *route;
-              //     break;
-              //   }
-              // }
-              // if (shortcutNecessary) {
-              storeShortcut(StatisticsCollector::CountType::repeatingConfig);
-              // }
+              if (sameCount <= Cost::dim) {
+                config.values[sameCount - 1] += 0.0001;
+                continue;
+              } else {
+                storeShortcut(StatisticsCollector::CountType::repeatingConfig);
+              }
             }
             break;
           }
