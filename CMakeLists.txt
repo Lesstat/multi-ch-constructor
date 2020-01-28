@@ -15,6 +15,11 @@ endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+# Needed for LTO
+cmake_policy(SET CMP0069 NEW)
+include(CheckIPOSupported)
+check_ipo_supported()
+
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 include(cotire)
 
@@ -43,11 +48,13 @@ target_link_libraries(multi_lib -ldl)
 target_link_libraries(multi_lib ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(multi_lib process)
 target_link_libraries(multi_lib threadpool)
+set_target_properties(multi_lib PROPERTIES INTERPROCEDURAL_OPTIMIZATION TRUE)
 
 
 # Executable of project links against lib
 add_executable(multi-ch src/main.cpp)
 target_link_libraries(multi-ch multi_lib)
+set_target_properties(multi-ch PROPERTIES INTERPROCEDURAL_OPTIMIZATION TRUE)
 
 
 add_executable(multi_lp src/lpsolver.cpp)
