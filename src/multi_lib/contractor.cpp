@@ -321,28 +321,6 @@ class ContractingThread {
             } else {
               storeShortcut(StatisticsCollector::CountType::unknownReason);
               break;
-              // std::cout << "currentCost * config " << currentCost * config << '\n';
-              // std::cout << "shortcutCost * config " << shortcutCost * config << '\n';
-
-              // std::cout << "currentCost:";
-              // for (auto& c : currentCost.values) {
-              //   std::cout << " " << c;
-              // }
-              // std::cout << '\n';
-
-              // std::cout << "shortcutCost:  ";
-              // for (auto& c : shortcutCost.values) {
-              //   std::cout << " " << c;
-              // }
-              // std::cout << '\n';
-
-              // std::cout << "config:  ";
-              // for (auto& c : config.values) {
-              //   std::cout << " " << c;
-              // }
-              // std::cout << '\n';
-
-              // std::exit(51);
             }
           }
 

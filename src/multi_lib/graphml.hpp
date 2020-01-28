@@ -111,6 +111,11 @@ Graph read_graphml(const std::string& loadFileName)
 
     auto out_edges = boost::out_edges(*vert, boost_graph);
     for (auto edge = out_edges.first; edge != out_edges.second; ++edge) {
+      if (edge->m_source != *vert) {
+        std::cout << "edge does not source != vert id (" << edge->m_source << " != " << *vert << ")"
+                  << '\n';
+        std::exit(5);
+      }
       if (edge->m_source == edge->m_target) {
         self_loops++;
         continue;
@@ -129,6 +134,10 @@ Graph read_graphml(const std::string& loadFileName)
         }
         c.values[idx] = it->second[*edge];
         ++idx;
+      }
+      if(idx != Cost::dim){
+	std::cout << "Graph file has not enough metrics" << '\n';
+	std::exit(2);
       }
       my_edge.setCost(c);
     }
