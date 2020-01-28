@@ -26,7 +26,7 @@
 
 class StatisticsCollector {
   public:
-  enum class CountType { shortestPath, repeatingConfig, toManyConstraints };
+  enum class CountType { shortestPath, repeatingConfig, unknownReason };
 
   StatisticsCollector(bool active)
       : active(active) {};
@@ -38,8 +38,8 @@ class StatisticsCollector {
       return;
     }
     std::lock_guard guard(key);
-    std::cout << shortCount << "\t\t" << sameCount << "\t\t\t" << toManyConstraints << "\t\t\t"
-              << lpMax << "\t\t" << constMax << '\n';
+    std::cout << shortCount << "\t\t" << sameCount << "\t\t\t" << unknown << "\t\t\t" << lpMax
+              << "\t\t" << constMax << '\n';
   }
   StatisticsCollector& operator=(const StatisticsCollector& other) = default;
   StatisticsCollector& operator=(StatisticsCollector&& other) noexcept = default;
@@ -47,7 +47,7 @@ class StatisticsCollector {
   static void printHeader()
   {
     std::cout << "| \t\t Reasons for shortcut creation \t\t | \t\t  Max values \t\t|  " << '\n';
-    std::cout << "short \t\t repeating \t\t constraints \t\t lp calls \t max constraints" << '\n';
+    std::cout << "short \t\t repeating \t\t unknown \t\t lp calls \t max constraints" << '\n';
   }
 
   void countShortcut(CountType t)
@@ -61,8 +61,8 @@ class StatisticsCollector {
       ++sameCount;
       break;
     }
-    case CountType::toManyConstraints: {
-      ++toManyConstraints;
+    case CountType::unknownReason: {
+      ++unknown;
       break;
     }
     }
@@ -78,7 +78,7 @@ class StatisticsCollector {
   bool active;
   size_t shortCount = 0;
   size_t sameCount = 0;
-  size_t toManyConstraints = 0;
+  size_t unknown = 0;
   size_t lpMax = 0;
   size_t constMax = 0;
   static std::mutex key;
@@ -316,10 +316,36 @@ class ContractingThread {
                 continue;
               } else {
                 storeShortcut(StatisticsCollector::CountType::repeatingConfig);
+                break;
               }
+            } else {
+              storeShortcut(StatisticsCollector::CountType::unknownReason);
+              break;
+              // std::cout << "currentCost * config " << currentCost * config << '\n';
+              // std::cout << "shortcutCost * config " << shortcutCost * config << '\n';
+
+              // std::cout << "currentCost:";
+              // for (auto& c : currentCost.values) {
+              //   std::cout << " " << c;
+              // }
+              // std::cout << '\n';
+
+              // std::cout << "shortcutCost:  ";
+              // for (auto& c : shortcutCost.values) {
+              //   std::cout << " " << c;
+              // }
+              // std::cout << '\n';
+
+              // std::cout << "config:  ";
+              // for (auto& c : config.values) {
+              //   std::cout << " " << c;
+              // }
+              // std::cout << '\n';
+
+              // std::exit(51);
             }
-            break;
           }
+
           sameCount = 0;
           config = newConfig;
         }
