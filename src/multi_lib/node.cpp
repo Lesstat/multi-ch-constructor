@@ -68,17 +68,21 @@ void Node::writeToStream(std::ostream& out) const
   const auto& graph_properties = get_graph_properties();
   size_t id = std::stoi(external_node_id_);
 
-  try {
-    std::string osm_id = get<std::string>("osmId", graph_properties, id);
-    double lat = get<double>("lat", graph_properties, id);
-    double lng = get<double>("lng", graph_properties, id);
-    double height = get<double>("height", graph_properties, id);
+  std::string osm_id = "0";
+  double lat = 0;
+  double lng = 0;
+  double height = 0;
 
-    out << id_ << ' ' << osm_id << ' ' << lat << ' ' << lng << ' ' << height << ' ' << level
-        << '\n';
+  try {
+    osm_id = get<std::string>("osmId", graph_properties, id);
+    lat = get<double>("lat", graph_properties, id);
+    lng = get<double>("lng", graph_properties, id);
+    height = get<double>("height", graph_properties, id);
+
   } catch (boost::wrapexcept<boost::dynamic_get_failure>& e) {
     std::cout << "failed: " << e.what() << '\n';
   }
+  out << id_ << ' ' << osm_id << ' ' << lat << ' ' << lng << ' ' << height << ' ' << level << '\n';
 }
 
 const std::string& Node::external_id() const { return external_node_id_; }
