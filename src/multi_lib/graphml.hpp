@@ -134,9 +134,17 @@ Graph read_graphml(const std::string& loadFileName)
         }
         c.values[idx] = it->second[*edge];
         ++idx;
+
+        if (0 > c.values[idx]) {
+	  std::cout  << " found cost below zero: " << c.values[idx] << "." << '\n';
+	  std::cout << "exiting because of invalid graph." << '\n';
+	  std::exit(7);
+	}
       }
-      if(idx != Cost::dim){
-	std::cout << "Graph file has not enough metrics" << '\n';
+
+      if(idx < Cost::dim){
+	std::cout << "Graph file has not enough metrics." << '\n';
+	std::cout << "Found " << idx << " metrics but need " << Cost::dim << "." << '\n';
 	std::exit(2);
       }
       my_edge.setCost(c);
@@ -148,7 +156,7 @@ Graph read_graphml(const std::string& loadFileName)
   Graph g { std::move(nodes), std::move(edges) };
 
   return g;
-};
+}
 
 boost::dynamic_properties& get_graph_properties()
 {
@@ -160,7 +168,7 @@ boost::dynamic_properties& get_graph_properties()
   }
 
   return *graph_properties;
-};
+}
 
 void write_graphml(std::ostream& outfile, const Graph& g)
 {
