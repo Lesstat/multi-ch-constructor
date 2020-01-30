@@ -286,13 +286,9 @@ class ContractingThread {
         }
 
         lpCount = 0;
-        size_t sameCount = 0;
         while (true) {
-          auto use_config = config;
-          if (sameCount > 0)
-            use_config.values[sameCount - 1] += 0.0001;
 
-          if (testConfig(use_config)) {
+          if (testConfig(config)) {
             break;
           }
           dedupConstraints();
@@ -310,21 +306,14 @@ class ContractingThread {
 
           Config newConfig { values };
           if (newConfig == config) {
-            sameCount++;
             if (currentCost * config >= shortcutCost * config - 0.000001) {
-              if (sameCount <= Cost::dim) {
-                continue;
-              } else {
-                storeShortcut(StatisticsCollector::CountType::repeatingConfig);
-                break;
-              }
+              storeShortcut(StatisticsCollector::CountType::repeatingConfig);
             } else {
               storeShortcut(StatisticsCollector::CountType::unknownReason);
-              break;
             }
+            break;
           }
 
-          sameCount = 0;
           config = newConfig;
         }
       }

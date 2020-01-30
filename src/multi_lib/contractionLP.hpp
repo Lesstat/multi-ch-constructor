@@ -32,7 +32,7 @@ namespace bp = boost::process;
 class ContractionLp {
 
   std::vector<double> variableValues_;
-  double epsilon_ = -1;
+  double delta_ = -1;
 
   public:
   ContractionLp()
@@ -66,7 +66,7 @@ class ContractionLp {
   bool solve()
   {
     variableValues_.clear();
-    epsilon_ = -1;
+    delta_ = -1;
 
     lpInput << '\n';
     lpInput.flush();
@@ -81,13 +81,13 @@ class ContractionLp {
       lpOutput >> coeff;
       variableValues_.push_back(coeff);
     }
-    // lpOutput >> epsilon_;
+    lpOutput >> delta_;
 
     return true;
   }
   std::vector<double> variableValues() const { return variableValues_; }
 
-  double epsilon() const { return epsilon_; }
+  double delta() const { return delta_; }
 
   protected:
   private:

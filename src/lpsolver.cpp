@@ -23,6 +23,8 @@
 #include <string>
 #include <vector>
 
+int delta_col = 0;
+
 void addVariables(glp_prob* lp, const int varCount)
 {
   glp_add_cols(lp, varCount);
@@ -34,6 +36,13 @@ void addVariables(glp_prob* lp, const int varCount)
     glp_set_obj_coef(lp, i + 1, 0);
     glp_set_col_name(lp, i + 1, ss.str().data());
   }
+
+  delta_col = glp_add_cols(lp, 1);
+
+  glp_set_col_bnds(lp, delta_col, GLP_LO, 0, 0);
+  glp_set_col_kind(lp, delta_col, GLP_CV);
+  glp_set_obj_coef(lp, delta_col, 1);
+  glp_set_col_name(lp, delta_col, "delta");
 }
 
 void addSumEqOneConstraint(glp_prob* lp, const int varCount)
@@ -72,16 +81,6 @@ bool readConstraints(glp_prob* lp, const size_t varCount)
       return false;
     }
 
-    // We want to maximize the deltas
-    int delta_col = glp_add_cols(lp, 1);
-    std::string delta = "delta ";
-    delta.append(std::to_string(delta_col));
-
-    glp_set_col_bnds(lp, delta_col, GLP_LO, 0, 0);
-    glp_set_col_kind(lp, delta_col, GLP_CV);
-    glp_set_obj_coef(lp, delta_col, 1);
-    glp_set_col_name(lp, delta_col, delta.data());
-
     int row = glp_add_rows(lp, 1);
     std::vector<int> ind(1, 0);
     std::vector<double> val(1, 0);
@@ -91,7 +90,7 @@ bool readConstraints(glp_prob* lp, const size_t varCount)
       val.push_back(std::stod(s));
     }
 
-    // Epsilon
+    // Delta
     ind.push_back(delta_col);
     val.push_back(-1);
     glp_set_row_bnds(lp, row, GLP_LO, 0.0, 0);
@@ -123,7 +122,9 @@ int main(int /*argc*/, char* argv[])
     glp_init_smcp(&params);
     params.presolve = GLP_ON;
     params.msg_lev = GLP_MSG_OFF;
+
     int status = glp_simplex(lp.get(), &params);
+
     if (status == 0) {
       status = glp_get_status(lp.get());
       if (!(status == GLP_OPT || status == GLP_FEAS)) {
@@ -141,6 +142,11 @@ int main(int /*argc*/, char* argv[])
          << glp_get_col_prim(lp.get(), i + 1);
       std::cout << ss.str() << "\n";
     }
+
+    std::stringstream ss;
+    ss << std::fixed << std::setprecision(std::numeric_limits<long double>::digits10 + 1)
+       << glp_get_col_prim(lp.get(), delta_col);
+    std::cout << ss.str() << "\n";
 
     if (!std::cin) {
       active = false;
