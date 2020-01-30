@@ -56,19 +56,22 @@ NodeId Edge::getDestId() const { return destination; }
 Edge Edge::createFromText(const std::string& text)
 {
 
+  std::string edge_id;
   size_t source, dest;
   std::array<double, Cost::dim> cost;
   long edgeA, edgeB;
 
   std::stringstream ss(text);
 
-  ss >> source >> dest;
+  ss >> edge_id >> source >> dest;
   for (auto& c : cost) {
     ss >> c;
   }
   ss >> edgeA >> edgeB;
 
   Edge e { NodeId(source), NodeId(dest) };
+  e.set_extrenal_id(edge_id);
+
   if (edgeA > 0) {
     e.edgeA = EdgeId { static_cast<size_t>(edgeA) };
     e.edgeB = EdgeId { static_cast<size_t>(edgeB) };
@@ -84,7 +87,7 @@ Edge Edge::createFromText(const std::string& text)
 
 void Edge::writeToStream(std::ostream& out) const
 {
-  out << source << ' ' << destination;
+  out << external_id_ << ' ' << source << ' ' << destination;
   for (const auto& c : cost.values) {
     out << ' ' << c;
   }

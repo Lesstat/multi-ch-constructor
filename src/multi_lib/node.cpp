@@ -42,47 +42,16 @@ std::ostream& operator<<(std::ostream& os, const Node& n)
 
 Node Node::createFromText(const std::string& text)
 {
-  size_t id, osmId, level;
-  double lat, lng;
-  double height;
+  size_t id, level;
 
-  std::sscanf(
-      text.c_str(), "%lu%lu%lf%lf%lf%lu", &id, &osmId, &lat, &lng, &height, &level); // NOLINT
+  std::sscanf(text.c_str(), "%lu%lu", &id, &level); // NOLINT
 
   Node n { std::to_string(id), NodeId { id } };
-
-  auto& graph_properties = get_graph_properties();
-
-  auto osm_id_string = std::to_string(osmId);
-  put("osmId", graph_properties, id, osm_id_string);
-  put("lat", graph_properties, id, lat);
-  put("lng", graph_properties, id, lng);
-  put("height", graph_properties, id, height);
 
   n.level = level;
   return n;
 }
 
-void Node::writeToStream(std::ostream& out) const
-{
-  const auto& graph_properties = get_graph_properties();
-  size_t id = std::stoi(external_node_id_);
-
-  std::string osm_id = "0";
-  double lat = 0;
-  double lng = 0;
-  double height = 0;
-
-  try {
-    osm_id = get<std::string>("osmId", graph_properties, id);
-    lat = get<double>("lat", graph_properties, id);
-    lng = get<double>("lng", graph_properties, id);
-    height = get<double>("height", graph_properties, id);
-
-  } catch (boost::wrapexcept<boost::dynamic_get_failure>& e) {
-    //    std::cout << "failed: " << e.what() << '\n';
-  }
-  out << id_ << ' ' << osm_id << ' ' << lat << ' ' << lng << ' ' << height << ' ' << level << '\n';
-}
+void Node::writeToStream(std::ostream& out) const { out << id_ << ' ' << level << '\n'; }
 
 const std::string& Node::external_id() const { return external_node_id_; }
