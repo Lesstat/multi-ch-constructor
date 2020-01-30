@@ -1,3 +1,6 @@
 [submodule "vendor/Simple-Web-Server"]
 	path = vendor/Simple-Web-Server
 	url = https://github.com/eidheim/Simple-Web-Server
+[submodule "externals/sanitizers-cmake"]
+	path = externals/sanitizers-cmake
+	url = git://github.com/arsenm/sanitizers-cmake.git

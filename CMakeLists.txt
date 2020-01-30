@@ -15,7 +15,7 @@ endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" "${CMAKE_SOURCE_DIR}/externals/sanitizers-cmake/cmake" ${CMAKE_MODULE_PATH})
 include(cotire)
 
 find_package(glpk REQUIRED)
@@ -24,6 +24,8 @@ find_package(Boost 1.58 REQUIRED COMPONENTS serialization program_options filesy
 find_package (Threads)
 
 find_package(glpk REQUIRED) 
+find_package(Sanitizers) 
+sanitizer_add_blacklist_file("sanitizer_blacklist.txt")
 
 
 add_library(process INTERFACE)
@@ -43,11 +45,13 @@ target_link_libraries(multi_lib -ldl)
 target_link_libraries(multi_lib ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(multi_lib process)
 target_link_libraries(multi_lib threadpool)
+#add_sanitizers(multi_lib)
 
 
 # Executable of project links against lib
 add_executable(multi-ch src/main.cpp)
 target_link_libraries(multi-ch multi_lib)
+add_sanitizers(multi-ch)
 
 add_executable(multi_lp src/lpsolver.cpp)
 target_link_libraries(multi_lp ${GLPK_LIBRARIES})
