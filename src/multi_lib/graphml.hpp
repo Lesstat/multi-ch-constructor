@@ -133,19 +133,19 @@ Graph read_graphml(const std::string& loadFileName)
           std::exit(2);
         }
         c.values[idx] = it->second[*edge];
-        ++idx;
 
         if (0 > c.values[idx]) {
-	  std::cout  << " found cost below zero: " << c.values[idx] << "." << '\n';
-	  std::cout << "exiting because of invalid graph." << '\n';
-	  std::exit(7);
-	}
+          std::cout << " found cost below zero: " << c.values[idx] << "." << '\n';
+          std::cout << "exiting because of invalid graph." << '\n';
+          std::exit(7);
+        }
+        ++idx;
       }
 
-      if(idx < Cost::dim){
-	std::cout << "Graph file has not enough metrics." << '\n';
-	std::cout << "Found " << idx << " metrics but need " << Cost::dim << "." << '\n';
-	std::exit(2);
+      if (idx < Cost::dim) {
+        std::cout << "Graph file has not enough metrics." << '\n';
+        std::cout << "Found " << idx << " metrics but need " << Cost::dim << "." << '\n';
+        std::exit(2);
       }
       my_edge.setCost(c);
     }
