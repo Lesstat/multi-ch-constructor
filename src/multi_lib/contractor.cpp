@@ -330,7 +330,6 @@ Contractor::Contractor(bool printStatistics)
 Contractor::Contractor(bool printStatistics, size_t maxThreads)
     : printStatistics(printStatistics)
     , THREAD_COUNT(maxThreads)
-    , tp(maxThreads)
 {
 
   while (lps.size() < THREAD_COUNT) {
@@ -357,9 +356,7 @@ Edge Contractor::createShortcut(const Edge& e1, const Edge& e2)
 std::future<std::vector<Edge>> Contractor::contract(
     MultiQueue<EdgePair>& queue, Graph& g, ContractionLp* lp, const std::set<NodePos>& set)
 {
-  // return std::async(std::launch::async, ContractingThread { &queue, &g, set, lp, printStatistics
-  // });
-  return tp.enqueue(ContractingThread { &queue, &g, set, lp, printStatistics });
+  return std::async(std::launch::async, ContractingThread { &queue, &g, set, lp, printStatistics });
 }
 
 std::set<NodePos> Contractor::independentSet(const Graph& g)

@@ -31,9 +31,6 @@ sanitizer_add_blacklist_file("sanitizer_blacklist.txt")
 add_library(process INTERFACE)
 target_include_directories(process SYSTEM INTERFACE vendor/boost-process)
 
-add_library(threadpool INTERFACE)
-target_include_directories(threadpool SYSTEM INTERFACE vendor/threadpool)
-
 # Actual Implementation of project in static library
 file(GLOB lib_src src/multi_lib/*.cpp )
 add_library(multi_lib STATIC ${lib_src})
@@ -44,7 +41,6 @@ target_link_libraries(multi_lib -lm)
 target_link_libraries(multi_lib -ldl)
 target_link_libraries(multi_lib ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(multi_lib process)
-target_link_libraries(multi_lib threadpool)
 #add_sanitizers(multi_lib)
 
 
