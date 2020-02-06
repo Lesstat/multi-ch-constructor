@@ -19,7 +19,6 @@
 #define CONTRACTOR_H
 
 #include "ndijkstra.hpp"
-#include "threadpool.h"
 #include <future>
 #include <set>
 
@@ -67,7 +66,6 @@ class Contractor {
   bool printStatistics = false;
   const size_t THREAD_COUNT;
   std::vector<std::unique_ptr<ContractionLp>> lps;
-  ThreadPool tp;
 };
 
 #endif /* CONTRACTOR_H */

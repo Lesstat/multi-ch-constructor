@@ -43,7 +43,7 @@ Edge::Edge(NodeId source, NodeId dest, ReplacedEdge edgeA, ReplacedEdge edgeB)
   if (edges.size() > 0 && (edgeA || edgeB)) {
     auto& e1 = Edge::getEdge(*edgeA);
     auto& e2 = Edge::getEdge(*edgeB);
-    if (e1.getSourceId() == e2.getSourceId()) {
+    if (e1.getSourceId() == e2.getSourceId() && e1.getSourceId() != e1.getDestId()) {
       std::cerr << "Same starting point" << '\n';
       std::terminate();
     }
