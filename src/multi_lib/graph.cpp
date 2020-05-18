@@ -174,6 +174,7 @@ template <class Obj> void parseLines(std::vector<Obj>& v, std::istream& file, si
     v.push_back(Obj::createFromText(line));
   }
 }
+std::string metric_names = "";
 
 Graph Graph::createFromStream(std::istream& file)
 {
@@ -193,6 +194,10 @@ Graph Graph::createFromStream(std::istream& file)
               << Cost::dim << '\n';
     throw std::runtime_error("Graph has wrong dimension");
   }
+
+  std::getline(file, line);
+  metric_names = line;
+
   size_t nodeCount = readCount(file);
   nodes.reserve(nodeCount);
 
@@ -269,6 +274,7 @@ void Graph::writeToStream(std::ostream& out) const
 {
   out << std::setprecision(7);
   out << Cost::dim << '\n';
+  out << metric_names << '\n';
   out << nodes.size() << '\n';
   out << inEdges.size() << '\n';
   for (const auto& node : nodes) {
