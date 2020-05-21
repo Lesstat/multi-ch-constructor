@@ -289,15 +289,21 @@ void Graph::writeToStream(std::ostream& out) const
         + " out: " + std::to_string(outEdges.size())
         + " all: " + std::to_string(Edge::edges.size()));
   }
+  std::vector<EdgeId> ids;
+  ids.reserve(inEdges.size());
 
-  for (size_t i = 0; i < inEdges.size(); i++) {
-    auto& e = inEdges[i];
-    if (e.id.get() != i) {
+  std::transform(
+      inEdges.begin(), inEdges.end(), std::back_inserter(ids), [](auto& e) { return e.id; });
+  std::sort(ids.begin(), ids.end());
+
+  for (size_t i = 0; i < ids.size(); i++) {
+    auto& id = ids[i];
+    if (id.get() != i) {
       throw std::invalid_argument(
-          "id != index " + std::to_string(e.id.get()) + " != " + std::to_string(i));
+          "id != index " + std::to_string(id.get()) + " != " + std::to_string(i));
     }
 
-    auto& edge = Edge::getEdge(e.id);
+    auto& edge = Edge::getEdge(id);
     edge.valid();
 
     edge.writeToStream(out);
