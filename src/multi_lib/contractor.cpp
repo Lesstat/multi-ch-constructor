@@ -260,6 +260,16 @@ class ContractingThread {
         in = pair.in;
         out = pair.out;
 
+        if (in.begin != out.begin) {
+          throw std::invalid_argument("In out pair does not belong together");
+        }
+        auto in_edge = Edge::getMutEdge(in.id);
+        auto out_edge = Edge::getMutEdge(out.id);
+
+        if (in_edge.getDestId() != out_edge.getSourceId()) {
+          throw std::invalid_argument("In out edges do not belong together");
+        }
+
         std::vector<double> coeff(Cost::dim, 1.0 / Cost::dim);
         config = Config { coeff };
         shortcutCost = in.cost + out.cost;
@@ -346,7 +356,8 @@ std::pair<bool, std::optional<RouteWithCount>> Contractor::isShortestPath(
 Edge Contractor::createShortcut(const Edge& e1, const Edge& e2)
 {
   if (e1.getDestId() != e2.getSourceId()) {
-    throw std::invalid_argument("Edges are not connected");
+    throw std::invalid_argument(
+        "Edges " + e1.external_id() + " and " + e2.external_id() + " are not connected");
   }
   Edge shortcut { e1.getSourceId(), e2.getDestId(), e1.getId(), e2.getId() };
   shortcut.setCost(e1.getCost() + e2.getCost());
@@ -480,6 +491,9 @@ Graph Contractor::contract(Graph& g)
         if (in.end == out.end) {
           continue;
         }
+        if (in.begin != out.begin) {
+          throw std::invalid_argument("pair is not connecting");
+        }
         pairs.push_back(EdgePair { in, out });
         ++edgePairCount;
         if (pairs.size() >= batchSize) {
@@ -563,9 +577,6 @@ Graph Contractor::mergeWithContracted(Graph& g)
   std::move(contractedNodes.begin(), contractedNodes.end(), std::back_inserter(nodes));
   contractedNodes = std::vector<Node>();
 
-  std::vector<EdgeId> edges {};
-  edges.reserve(contractedEdges.size() + g.getEdgeCount());
-
   ++level;
 
   for (size_t i = 0; i < g.getNodeCount(); ++i) {
@@ -573,17 +584,18 @@ Graph Contractor::mergeWithContracted(Graph& g)
     auto node = g.getNode(pos);
     node.assignLevel(level);
     nodes.push_back(node);
-    auto outEdges = g.getOutgoingEdgesOf(pos);
-    std::transform(outEdges.begin(), outEdges.end(), std::back_inserter(edges),
-        [](const auto& e) { return e.id; });
   }
   g = Graph(std::vector<Node>(), std::vector<Edge>());
 
-  std::move(contractedEdges.begin(), contractedEdges.end(), std::back_inserter(edges));
   contractedEdges = std::vector<EdgeId>();
+
+  std::vector<EdgeId> edges {};
+  std::transform(Edge::edges.begin(), Edge::edges.end(), std::back_inserter(edges),
+      [](auto& e) { return e.getId(); });
 
   std::cout << "Final graph has " << nodes.size() << " nodes and " << edges.size() << " edges."
             << '\n';
+
   return Graph { std::move(nodes), std::move(edges) };
 }
 

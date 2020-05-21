@@ -41,7 +41,7 @@ target_link_libraries(multi_lib -lm)
 target_link_libraries(multi_lib -ldl)
 target_link_libraries(multi_lib ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(multi_lib process)
-#add_sanitizers(multi_lib)
+add_sanitizers(multi_lib)
 
 
 # Executable of project links against lib
@@ -61,3 +61,4 @@ target_include_directories(catch INTERFACE vendor/catch)
 file(GLOB test_src test/*.cpp)
 add_executable(ch_test ${test_src})
 target_link_libraries(ch_test multi_lib catch)
+add_sanitizers(ch_test)

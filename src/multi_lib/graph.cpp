@@ -110,6 +110,12 @@ Graph::Graph(std::vector<Node>&& nodes, std::vector<EdgeId>&& edges)
 }
 void Graph::init(std::vector<Node>&& nodes, std::vector<EdgeId>&& edges)
 {
+  std::sort(edges.begin(), edges.end());
+  for (size_t i = 1; i < edges.size(); i++) {
+    if (edges[i - 1] == edges[i]) {
+      std::cout << "duplicate edge detected: " << edges[i] << '\n';
+    }
+  }
   std::stable_sort(nodes.begin(), nodes.end(),
       [](const Node& a, const Node& b) { return a.getLevel() < b.getLevel(); });
 
@@ -207,6 +213,9 @@ Graph Graph::createFromStream(std::istream& file)
   parseLines(nodes, file, nodeCount);
   parseLines(edges, file, edgeCount);
 
+  std::cout << "Read graph with " << nodes.size() << " nodes and " << edges.size() << " edges."
+            << '\n';
+
   return Graph { std::move(nodes), std::move(edges) };
 }
 
@@ -281,16 +290,22 @@ void Graph::writeToStream(std::ostream& out) const
     node.writeToStream(out);
   }
 
-  std::vector<EdgeId> edges;
-  edges.reserve(inEdges.size());
+  if (Edge::edges.size() != inEdges.size() || Edge::edges.size() != outEdges.size()) {
+    throw std::invalid_argument("edge counts doesn't match in: " + std::to_string(inEdges.size())
+        + " out: " + std::to_string(outEdges.size())
+        + " all: " + std::to_string(Edge::edges.size()));
+  }
 
-  std::transform(inEdges.begin(), inEdges.end(), std::back_inserter(edges),
-      [](const auto& e) { return e.id; });
+  for (size_t i = 0; i < inEdges.size(); i++) {
+    auto& e = inEdges[i];
+    if (e.id.get() != i) {
+      throw std::invalid_argument(
+          "id != index " + std::to_string(e.id.get()) + " != " + std::to_string(i));
+    }
 
-  std::sort(edges.begin(), edges.end(), [](auto& a, auto& b) { return a.get() < b.get(); });
+    auto& edge = Edge::getEdge(e.id);
+    edge.valid();
 
-  for (const auto& id : edges) {
-    auto& edge = Edge::getEdge(id);
     edge.writeToStream(out);
   }
 }

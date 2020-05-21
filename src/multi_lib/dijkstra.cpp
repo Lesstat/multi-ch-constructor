@@ -19,7 +19,7 @@
 #include <queue>
 
 const double dmax = std::numeric_limits<double>::max();
-const Cost maxCost{ std::vector<double>(Cost::dim, dmax) };
+const Cost maxCost { std::vector<double>(Cost::dim, dmax) };
 
 Dijkstra::Dijkstra(Graph* g, size_t nodeCount)
     : costS(nodeCount, dmax)
@@ -46,7 +46,7 @@ void insertUnpackedEdge(const Edge& e, std::deque<Edge>& route, bool front)
   const auto& edgeA = e.getEdgeA();
   const auto& edgeB = e.getEdgeB();
 
-  if (edgeA) {
+  if (e.valid() && edgeA) {
     if (front) {
       insertUnpackedEdge(Edge::getEdge(*edgeB), route, front);
       insertUnpackedEdge(Edge::getEdge(*edgeA), route, front);
@@ -67,7 +67,7 @@ Route Dijkstra::buildRoute(NodePos node, NodeToEdgeMap previousEdgeS, NodeToEdge
     NodePos from, NodePos to)
 {
 
-  Route route{};
+  Route route {};
   auto curNode = node;
   while (curNode != from) {
     const auto& edge = previousEdgeS[curNode];
@@ -99,21 +99,21 @@ std::optional<Route> Dijkstra::findBestRoute(NodePos from, NodePos to, Config co
 
   clearState();
   this->config = config;
-  Dijkstra::Queue heapS{ QueueComparator{} };
+  Dijkstra::Queue heapS { QueueComparator {} };
 
   heapS.push(std::make_pair(from, 0));
   touchedS.push_back(from);
   costS[from] = 0;
 
-  NodeToEdgeMap previousEdgeS{};
+  NodeToEdgeMap previousEdgeS {};
 
-  Queue heapT{ QueueComparator{} };
+  Queue heapT { QueueComparator {} };
 
   heapT.push(std::make_pair(to, 0));
   touchedT.push_back(to);
   costT[to] = 0;
 
-  NodeToEdgeMap previousEdgeT{};
+  NodeToEdgeMap previousEdgeT {};
 
   bool sBigger = false;
   bool tBigger = false;
@@ -267,7 +267,7 @@ Config generateRandomConfig()
 {
   double configLeft = 1.0;
   std::vector<double> confValues;
-  std::random_device rd{};
+  std::random_device rd {};
   for (size_t i = 0; i < Cost::dim - 1; ++i) {
     std::uniform_real_distribution dist(0.0, configLeft);
     double val = dist(rd);
@@ -275,5 +275,5 @@ Config generateRandomConfig()
     configLeft -= val;
   }
   confValues.push_back(configLeft);
-  return Config{ confValues };
+  return Config { confValues };
 }

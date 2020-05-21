@@ -37,6 +37,11 @@ Graph contractGraph(Graph& g, double rest, bool printStats, size_t maxThreads)
   using m = std::chrono::minutes;
   std::cout << "contracting the graph took " << std::chrono::duration_cast<m>(end - start).count()
             << " minutes" << '\n';
+
+  std::cout << "checking validity" << '\n';
+  for (auto& e : Edge::edges) {
+    e.valid();
+  }
   return ch;
 }
 
