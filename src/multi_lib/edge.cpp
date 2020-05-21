@@ -185,3 +185,37 @@ NodePos Edge::sourcePos() const { return sourcePos_; }
 NodePos Edge::destPos() const { return destPos_; }
 void Edge::sourcePos(NodePos source) { sourcePos_ = source; }
 void Edge::destPos(NodePos dest) { destPos_ = dest; }
+
+bool Edge::valid() const
+{
+  if (!edgeA && !edgeB) {
+    return true;
+  } else if (edgeA && edgeB) {
+    auto e1 = Edge::getEdge(*edgeA);
+    auto e2 = Edge::getEdge(*edgeB);
+    if (source != e1.source) {
+      throw std::invalid_argument("Shortcut has different source than e1");
+    }
+    if (destination != e2.destination) {
+      throw std::invalid_argument("Shortcut has different target than e2");
+    }
+
+    if (sourcePos_ != e1.sourcePos_) {
+      throw std::invalid_argument("Shortcut has different source pos than e1");
+    }
+    if (destPos_ != e2.destPos_) {
+      throw std::invalid_argument("Shortcut has different target pos than e2");
+    }
+    if (e1.destination != e2.source) {
+      throw std::invalid_argument("Replaced edges are not connected");
+    }
+
+    if (e1.destPos_ != e2.sourcePos_) {
+      throw std::invalid_argument("Replaced edges are not connected via position");
+    }
+
+  } else {
+    throw std::invalid_argument("created half shortcut");
+  }
+  return true;
+}

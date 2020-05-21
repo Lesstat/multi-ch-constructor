@@ -150,6 +150,7 @@ class Edge {
   Edge& operator=(const Edge& other) = default;
   Edge& operator=(Edge&& other) noexcept = default;
 
+  bool valid() const;
   NodeId getSourceId() const;
   NodeId getDestId() const;
   const ReplacedEdge& getEdgeA() const;
@@ -195,6 +196,7 @@ class Edge {
   NodePos sourcePos_;
   NodePos destPos_;
 
+  public:
   static std::vector<Edge> edges;
 };
 
