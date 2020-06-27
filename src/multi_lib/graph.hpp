@@ -46,7 +46,7 @@ class NormalDijkstra;
 struct Config;
 
 struct Cost {
-  static const size_t dim = 4;
+  static const size_t dim = GRAPH_DIM;
   std::array<double, dim> values;
   Cost(const std::vector<double>& values)
   {
