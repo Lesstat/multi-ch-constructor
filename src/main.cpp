@@ -203,7 +203,8 @@ int main(int argc, char* argv[])
   saving.add_options()
     ("write,w", po::value<std::string>(&saveFileName), "File to save graph to")
     ("zo", "gzip outfile")
-    ("write-graphml,wg", po::value<std::string>(&saveFileName), "Graphml file to save graph to.");
+    ("write-graphml,wg", po::value<std::string>(&saveFileName), "Graphml file to save graph to.")
+    ("using-osm-ids", "Using osm-ids instead of node-indices when writing edges");
   // clang-format on
 
   po::options_description all;
@@ -253,7 +254,8 @@ int main(int argc, char* argv[])
     out << "# Input Graphfile: " << loadFileName << '\n';
     out << '\n';
 
-    g.writeToStream(out);
+    bool is_using_osm_ids = vm.count("using-osm-ids") > 0;
+    g.writeToStream(out, is_using_osm_ids);
   } else if (vm.count("write-graphml") > 0) {
     std::cout << "saving" << '\n';
     std::ofstream outFile { saveFileName };

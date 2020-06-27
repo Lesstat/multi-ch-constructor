@@ -274,7 +274,7 @@ NodePos Graph::getNodePos(const Node* n) const
   return NodePos { static_cast<size_t>(n - nodes.data()) };
 }
 
-void Graph::writeToStream(std::ostream& out) const
+void Graph::writeToStream(std::ostream& out, bool is_using_osm_ids) const
 {
   out << std::setprecision(7);
   out << Cost::dim << '\n';
@@ -306,6 +306,6 @@ void Graph::writeToStream(std::ostream& out) const
     auto& edge = Edge::getEdge(id);
     edge.valid();
 
-    edge.writeToStream(out);
+    edge.writeToStream(out, is_using_osm_ids);
   }
 }
