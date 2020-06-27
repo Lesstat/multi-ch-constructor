@@ -44,6 +44,11 @@ target_link_libraries(multi_lib process)
 add_sanitizers(multi_lib)
 
 
+# Set graph's dimension to 4 when fresh
+set(GRAPH_DIM 4 CACHE STRING "The graph-metrics' dimension")
+message("Using GRAPH_DIM=${GRAPH_DIM}")
+add_compile_definitions(GRAPH_DIM=${GRAPH_DIM})
+
 # Executable of project links against lib
 add_executable(multi-ch src/main.cpp)
 target_link_libraries(multi-ch multi_lib)
