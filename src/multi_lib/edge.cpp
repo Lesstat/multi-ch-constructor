@@ -73,7 +73,7 @@ Edge Edge::createFromText(const std::string& text)
   ss >> edgeA >> edgeB;
 
   Edge e { NodeId(source), NodeId(dest) };
-  e.external_id_ = external_id;
+  e.set_extrenal_id(external_id);
 
   if (edgeA > 0) {
     e.edgeA = EdgeId { static_cast<size_t>(edgeA) };
@@ -91,7 +91,7 @@ Edge Edge::createFromText(const std::string& text)
 void Edge::writeToStream(std::ostream& out) const
 {
   if (use_external_edge_ids_) {
-    out << external_id_;
+    out << external_id_ << ' ';
   }
   if (use_node_osm_ids_) {
     const auto& graph_properties = get_graph_properties();
@@ -147,7 +147,11 @@ void Edge::setId(EdgeId id)
   }
 }
 
-void Edge::set_extrenal_id(const std::string& external_id) { external_id_ = external_id; }
+void Edge::set_extrenal_id(const std::string& external_id)
+{
+  std::cout << external_id << '\n';
+  external_id_ = external_id;
+}
 
 const std::string& Edge::external_id() const { return external_id_; }
 
@@ -162,10 +166,12 @@ std::vector<EdgeId> Edge::administerEdges(std::vector<Edge>&& edges)
     auto& edge = edges[i];
     if (edge.getId() == 0) {
       edge.setId(EdgeId { new_id });
-      edge.set_extrenal_id(std::to_string(new_id));
     } else if (edge.getId() != new_id) {
       std::cerr << "Edge ids dont align: " << '\n';
       std::terminate();
+    }
+    if (edge.external_id().empty()) {
+      edge.set_extrenal_id(std::to_string(new_id));
     }
     ids.emplace_back(new_id);
   }
