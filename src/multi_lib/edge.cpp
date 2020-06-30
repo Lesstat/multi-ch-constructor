@@ -82,9 +82,16 @@ Edge Edge::createFromText(const std::string& text)
   return e;
 }
 
-void Edge::writeToStream(std::ostream& out) const
+void Edge::writeToStream(std::ostream& out, bool is_using_osm_ids) const
 {
-  out << source << ' ' << destination;
+  if (is_using_osm_ids) {
+    const auto& graph_properties = get_graph_properties();
+    std::string src_osm_id = get<std::string>("osmId", graph_properties, getSourceId().get());
+    std::string dst_osm_id = get<std::string>("osmId", graph_properties, getDestId().get());
+    out << src_osm_id << ' ' << dst_osm_id;
+  } else {
+    out << source << ' ' << destination;
+  }
   for (const auto& c : cost.values) {
     out << ' ' << c;
   }

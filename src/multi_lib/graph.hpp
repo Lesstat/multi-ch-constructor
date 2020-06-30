@@ -46,7 +46,7 @@ class NormalDijkstra;
 struct Config;
 
 struct Cost {
-  static const size_t dim = 4;
+  static const size_t dim = GRAPH_DIM;
   std::array<double, dim> values;
   Cost(const std::vector<double>& values)
   {
@@ -173,7 +173,7 @@ class Edge {
   HalfEdge makeHalfEdge(NodePos begin, NodePos end) const;
 
   static Edge createFromText(const std::string& text);
-  void writeToStream(std::ostream& out) const;
+  void writeToStream(std::ostream& out, bool is_using_osm_ids) const;
   static std::vector<EdgeId> administerEdges(std::vector<Edge>&& edges);
   static const Edge& getEdge(EdgeId id);
   static Edge& getMutEdge(EdgeId id);
@@ -263,7 +263,7 @@ class Graph {
   size_t getLevelOf(NodePos pos) const;
 
   static Graph createFromStream(std::istream& file);
-  void writeToStream(std::ostream& out) const;
+  void writeToStream(std::ostream& out, bool is_using_osm_ids) const;
 
   const Node& getNode(NodePos pos) const;
   std::optional<NodePos> nodePosById(NodeId id) const;
