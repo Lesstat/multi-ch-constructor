@@ -173,10 +173,13 @@ class Edge {
   HalfEdge makeHalfEdge(NodePos begin, NodePos end) const;
 
   static Edge createFromText(const std::string& text);
-  void writeToStream(std::ostream& out, bool is_using_osm_ids) const;
+  void writeToStream(std::ostream& out) const;
   static std::vector<EdgeId> administerEdges(std::vector<Edge>&& edges);
   static const Edge& getEdge(EdgeId id);
   static Edge& getMutEdge(EdgeId id);
+
+  static void write_osm_id_of_nodes(bool value);
+  static void use_external_edge_ids(bool value);
 
   friend void testEdgeInternals(const Edge& e, NodeId source, NodeId destination, Length length,
       Height height, Unsuitability unsuitability, const ReplacedEdge& edgeA,
@@ -195,6 +198,9 @@ class Edge {
   ReplacedEdge edgeB;
   NodePos sourcePos_;
   NodePos destPos_;
+
+  static bool use_node_osm_ids_;
+  static bool use_external_edge_ids_;
 
   public:
   static std::vector<Edge> edges;
@@ -263,7 +269,7 @@ class Graph {
   size_t getLevelOf(NodePos pos) const;
 
   static Graph createFromStream(std::istream& file);
-  void writeToStream(std::ostream& out, bool is_using_osm_ids) const;
+  void writeToStream(std::ostream& out) const;
 
   const Node& getNode(NodePos pos) const;
   std::optional<NodePos> nodePosById(NodeId id) const;

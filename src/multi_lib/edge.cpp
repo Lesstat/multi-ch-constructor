@@ -56,12 +56,16 @@ NodeId Edge::getDestId() const { return destination; }
 Edge Edge::createFromText(const std::string& text)
 {
 
+  std::string external_id = "";
   size_t source, dest;
   std::array<double, Cost::dim> cost;
   long edgeA, edgeB;
 
   std::stringstream ss(text);
 
+  if (use_external_edge_ids_) {
+    ss >> external_id;
+  }
   ss >> source >> dest;
   for (auto& c : cost) {
     ss >> c;
@@ -69,6 +73,8 @@ Edge Edge::createFromText(const std::string& text)
   ss >> edgeA >> edgeB;
 
   Edge e { NodeId(source), NodeId(dest) };
+  e.external_id_ = external_id;
+
   if (edgeA > 0) {
     e.edgeA = EdgeId { static_cast<size_t>(edgeA) };
     e.edgeB = EdgeId { static_cast<size_t>(edgeB) };
@@ -82,9 +88,12 @@ Edge Edge::createFromText(const std::string& text)
   return e;
 }
 
-void Edge::writeToStream(std::ostream& out, bool is_using_osm_ids) const
+void Edge::writeToStream(std::ostream& out) const
 {
-  if (is_using_osm_ids) {
+  if (use_external_edge_ids_) {
+    out << external_id_;
+  }
+  if (use_node_osm_ids_) {
     const auto& graph_properties = get_graph_properties();
     std::string src_osm_id = get<std::string>("osmId", graph_properties, getSourceId().get());
     std::string dst_osm_id = get<std::string>("osmId", graph_properties, getDestId().get());
@@ -153,6 +162,7 @@ std::vector<EdgeId> Edge::administerEdges(std::vector<Edge>&& edges)
     auto& edge = edges[i];
     if (edge.getId() == 0) {
       edge.setId(EdgeId { new_id });
+      edge.set_extrenal_id(std::to_string(new_id));
     } else if (edge.getId() != new_id) {
       std::cerr << "Edge ids dont align: " << '\n';
       std::terminate();
@@ -226,3 +236,9 @@ bool Edge::valid() const
   }
   return true;
 }
+
+bool Edge::use_node_osm_ids_ = false;
+bool Edge::use_external_edge_ids_ = false;
+
+void Edge::write_osm_id_of_nodes(bool value) { use_node_osm_ids_ = value; }
+void Edge::use_external_edge_ids(bool value) { use_external_edge_ids_ = value; }
