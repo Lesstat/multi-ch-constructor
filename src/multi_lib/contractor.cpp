@@ -267,6 +267,12 @@ class ContractingThread {
         auto out_edge = Edge::getMutEdge(out.id);
 
         if (in_edge.getDestId() != out_edge.getSourceId()) {
+          std::cout << "in: " << in.id << ", out: " << out.id << '\n'
+                    << "in source: " << in_edge.getSourceId()
+                    << ", in dest: " << in_edge.getDestId() << '\n'
+                    << "out source: " << out_edge.getSourceId()
+                    << ", out dest: " << out_edge.getDestId() << '\n';
+          continue;
           throw std::invalid_argument("In out edges do not belong together");
         }
 
