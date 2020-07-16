@@ -80,7 +80,7 @@ void Node::writeToStream(std::ostream& out) const
     lng = get<double>("lng", graph_properties, id);
     height = get<double>("height", graph_properties, id);
 
-  } catch (boost::wrapexcept<boost::dynamic_get_failure>& e) {
+  } catch (std::exception& e) {
     //    std::cout << "failed: " << e.what() << '\n';
   }
   out << id_ << ' ' << osm_id << ' ' << lat << ' ' << lng << ' ' << height << ' ' << level << '\n';
