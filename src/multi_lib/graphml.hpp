@@ -122,7 +122,7 @@ Graph read_graphml(const std::string& loadFileName)
       }
       auto& my_edge = edges.emplace_back(NodeId { edge->m_source }, NodeId { edge->m_target });
 
-      my_edge.set_extrenal_id(store.edge_info_maps["name"][*edge]);
+      my_edge.set_external_id(store.edge_info_maps["name"][*edge]);
 
       Cost c;
       size_t idx = 0;

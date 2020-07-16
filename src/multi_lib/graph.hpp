@@ -164,7 +164,7 @@ class Edge {
   EdgeId getId() const;
   void setId(EdgeId id);
 
-  void set_extrenal_id(const std::string& external_id);
+  void set_external_id(const std::string& external_id);
   const std::string& external_id() const;
   const Cost& getCost() const;
   double costByConfiguration(const Config& conf) const;

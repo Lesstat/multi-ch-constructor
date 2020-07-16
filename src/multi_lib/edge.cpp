@@ -73,7 +73,7 @@ Edge Edge::createFromText(const std::string& text)
   ss >> edgeA >> edgeB;
 
   Edge e { NodeId(source), NodeId(dest) };
-  e.set_extrenal_id(external_id);
+  e.set_external_id(external_id);
 
   if (edgeA > 0) {
     e.edgeA = EdgeId { static_cast<size_t>(edgeA) };
@@ -147,11 +147,7 @@ void Edge::setId(EdgeId id)
   }
 }
 
-void Edge::set_extrenal_id(const std::string& external_id)
-{
-  std::cout << external_id << '\n';
-  external_id_ = external_id;
-}
+void Edge::set_external_id(const std::string& external_id) { external_id_ = external_id; }
 
 const std::string& Edge::external_id() const { return external_id_; }
 
@@ -171,7 +167,7 @@ std::vector<EdgeId> Edge::administerEdges(std::vector<Edge>&& edges)
       std::terminate();
     }
     if (edge.external_id().empty()) {
-      edge.set_extrenal_id(std::to_string(new_id));
+      edge.set_external_id(std::to_string(new_id));
     }
     ids.emplace_back(new_id);
   }
