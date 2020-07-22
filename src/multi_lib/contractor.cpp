@@ -316,7 +316,7 @@ class ContractingThread {
 
           Config newConfig { values };
           if (newConfig == config) {
-            if (currentCost * config >= shortcutCost * config - 0.000001) {
+            if (currentCost * config >= shortcutCost * config - COST_ACCURACY) {
               storeShortcut(StatisticsCollector::CountType::repeatingConfig);
             } else {
               storeShortcut(StatisticsCollector::CountType::unknownReason);
@@ -543,7 +543,7 @@ Graph Contractor::contract(Graph& g)
             return false;
 
           for (size_t i = 0; i < Cost::dim; ++i) {
-            if (std::abs(left.getCost().values[i] - right.getCost().values[i]) > 0.000001) {
+            if (std::abs(left.getCost().values[i] - right.getCost().values[i]) > COST_ACCURACY) {
               return false;
             }
           }
