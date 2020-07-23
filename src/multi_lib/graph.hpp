@@ -108,7 +108,7 @@ struct Cost {
   bool operator==(const Cost& c) const
   {
     for (size_t i = 0; i < Cost::dim; ++i) {
-      if (std::abs(values[i] - c.values[i]) >= COST_ACCURACY) {
+      if (std::abs(values[i] - c.values[i]) > COST_ACCURACY) {
         return false;
       }
     }
