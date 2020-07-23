@@ -54,11 +54,6 @@ set(COST_ACCURACY 0.000001 CACHE STRING "The graph-edges' cost-accuracy")
 message("Using COST_ACCURACY=${COST_ACCURACY}")
 add_compile_definitions(COST_ACCURACY=${COST_ACCURACY})
 
-# Set graph's edges' minimum-cost to 0.0
-set(MIN_COST 0.0 CACHE STRING "The graph-edges' minimum-cost")
-message("Using MIN_COST=${MIN_COST}")
-add_compile_definitions(MIN_COST=${MIN_COST})
-
 # Executable of project links against lib
 add_executable(multi-ch src/main.cpp)
 target_link_libraries(multi-ch multi_lib)
