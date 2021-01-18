@@ -50,14 +50,14 @@ message("Using GRAPH_DIM=${GRAPH_DIM}")
 add_compile_definitions(GRAPH_DIM=${GRAPH_DIM})
 
 # Executable of project links against lib
-add_executable(multi-ch src/main.cpp)
-target_link_libraries(multi-ch multi_lib)
-add_sanitizers(multi-ch)
+add_executable(multi-ch${GRAPH_DIM} src/main.cpp)
+target_link_libraries(multi-ch${GRAPH_DIM} multi_lib)
+add_sanitizers(multi-ch${GRAPH_DIM})
 
-add_executable(multi_lp src/lpsolver.cpp)
-target_link_libraries(multi_lp ${GLPK_LIBRARIES})
+add_executable(multi_lp${GRAPH_DIM} src/lpsolver.cpp)
+target_link_libraries(multi_lp${GRAPH_DIM} ${GLPK_LIBRARIES})
 
-cotire(multi_lib multi-ch)
+cotire(multi_lib multi-ch${GRAPH_DIM})
 
 # Definition of Testing library catch
 add_library(catch INTERFACE)

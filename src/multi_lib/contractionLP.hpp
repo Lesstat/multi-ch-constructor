@@ -24,9 +24,9 @@
 #include <boost/dll.hpp>
 #include <iomanip>
 #include <sstream>
+#include <string>
 
 const auto dir = boost::dll::program_location().parent_path();
-const auto lp_executable = "multi_lp";
 
 namespace bp = boost::process;
 class ContractionLp {
@@ -36,7 +36,7 @@ class ContractionLp {
 
   public:
   ContractionLp()
-      : lp(dir / lp_executable, std::to_string(Cost::dim), bp::std_out > lpOutput,
+      : lp(dir / lp_executable(), std::to_string(Cost::dim), bp::std_out > lpOutput,
           bp::std_in < lpInput)
   {
     variableValues_.reserve(Cost::dim);
@@ -88,6 +88,13 @@ class ContractionLp {
   std::vector<double> variableValues() const { return variableValues_; }
 
   double delta() const { return delta_; }
+
+  static const std::string lp_executable()
+  {
+    std::stringstream name;
+    name << "multi_lp" << GRAPH_DIM;
+    return name.str();
+  }
 
   protected:
   private:
