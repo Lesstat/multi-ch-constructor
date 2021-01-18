@@ -52,15 +52,15 @@ struct Cost {
   {
     for (size_t i = 0; i < dim; ++i) {
       this->values[i] = values[i];
-      if (std::abs(this->values[i]) < 0.0001) {
-        this->values[i] = 0;
+      if (std::abs(this->values[i]) < COST_ACCURACY) {
+        this->values[i] = 0.0;
       }
     }
   }
   Cost()
   {
     for (size_t i = 0; i < Cost::dim; ++i) {
-      values[i] = 0;
+      values[i] = 0.0;
     }
   }
   Cost(const Cost& other) { values = other.values; }
@@ -81,8 +81,8 @@ struct Cost {
   {
     for (size_t i = 0; i < dim; ++i) {
       this->values[i] = values[i];
-      if (std::abs(this->values[i]) < 0.0001) {
-        this->values[i] = 0;
+      if (std::abs(this->values[i]) < COST_ACCURACY) {
+        this->values[i] = 0.0;
       }
     }
   }
@@ -108,7 +108,7 @@ struct Cost {
   bool operator==(const Cost& c) const
   {
     for (size_t i = 0; i < Cost::dim; ++i) {
-      if (std::abs(values[i] - c.values[i]) >= 0.0001) {
+      if (std::abs(values[i] - c.values[i]) > COST_ACCURACY) {
         return false;
       }
     }

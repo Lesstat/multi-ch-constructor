@@ -73,7 +73,7 @@ std::optional<RouteWithCount> NormalDijkstra::findBestRoute(
         paths[nextNode] = paths[node];
         previousEdge[nextNode] = { edge };
         heap.push(next);
-      } else if (std::abs(nextCost - cost[nextNode]) < 0.001) {
+      } else if (std::abs(nextCost - cost[nextNode]) < COST_ACCURACY) {
         paths[nextNode] += paths[node];
         previousEdge[nextNode].push_back(edge);
       }
@@ -189,7 +189,7 @@ std::optional<RouteWithCount> RouteIterator::next()
       newRoute.costs = newRoute.costs + edge.cost;
       if (std::abs(dijkstra->cost[source] + edge.costByConfiguration(dijkstra->usedConfig)
               - dijkstra->cost[hTo])
-              > 0.00000001
+              > COST_ACCURACY
           || newRoute.costs * dijkstra->usedConfig > dijkstra->pathCost * dijkstra->usedConfig) {
         continue;
       }

@@ -49,6 +49,11 @@ set(GRAPH_DIM 4 CACHE STRING "The graph-metrics' dimension")
 message("Using GRAPH_DIM=${GRAPH_DIM}")
 add_compile_definitions(GRAPH_DIM=${GRAPH_DIM})
 
+# Set graph's edges' cost-accuracy to 10e-6
+set(COST_ACCURACY 0.000001 CACHE STRING "The graph-edges' cost-accuracy")
+message("Using COST_ACCURACY=${COST_ACCURACY}")
+add_compile_definitions(COST_ACCURACY=${COST_ACCURACY})
+
 # Executable of project links against lib
 add_executable(multi-ch${GRAPH_DIM} src/main.cpp)
 target_link_libraries(multi-ch${GRAPH_DIM} multi_lib)
