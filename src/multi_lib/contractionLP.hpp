@@ -18,10 +18,10 @@
 #ifndef CONTRACTIONLP_H
 #define CONTRACTIONLP_H
 
-#include "child.hpp"
 #include "graph.hpp"
-#include "io.hpp"
 #include <boost/dll.hpp>
+#include <boost/process/child.hpp>
+#include <boost/process/io.hpp>
 #include <iomanip>
 #include <sstream>
 #include <string>
