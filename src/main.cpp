@@ -174,7 +174,11 @@ int testGraph(Graph& g)
 namespace po = boost::program_options;
 int main(int argc, char* argv[])
 {
-  std::cout.imbue(std::locale(""));
+  try {
+    std::cout.imbue(std::locale(""));
+  } catch (std::runtime_error& e) {
+    std::cerr << "could not set locale because of: " << e.what() << '\n';
+  }
 
   std::string loadFileName {};
   std::string saveFileName {};
