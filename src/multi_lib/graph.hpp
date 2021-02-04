@@ -46,21 +46,21 @@ class NormalDijkstra;
 struct Config;
 
 struct Cost {
-  static const size_t dim = 4;
+  static const size_t dim = GRAPH_DIM;
   std::array<double, dim> values;
   Cost(const std::vector<double>& values)
   {
     for (size_t i = 0; i < dim; ++i) {
       this->values[i] = values[i];
-      if (std::abs(this->values[i]) < 0.0001) {
-        this->values[i] = 0;
+      if (std::abs(this->values[i]) < COST_ACCURACY) {
+        this->values[i] = 0.0;
       }
     }
   }
   Cost()
   {
     for (size_t i = 0; i < Cost::dim; ++i) {
-      values[i] = 0;
+      values[i] = 0.0;
     }
   }
   Cost(const Cost& other) { values = other.values; }
@@ -81,8 +81,8 @@ struct Cost {
   {
     for (size_t i = 0; i < dim; ++i) {
       this->values[i] = values[i];
-      if (std::abs(this->values[i]) < 0.0001) {
-        this->values[i] = 0;
+      if (std::abs(this->values[i]) < COST_ACCURACY) {
+        this->values[i] = 0.0;
       }
     }
   }
@@ -108,7 +108,7 @@ struct Cost {
   bool operator==(const Cost& c) const
   {
     for (size_t i = 0; i < Cost::dim; ++i) {
-      if (std::abs(values[i] - c.values[i]) >= 0.0001) {
+      if (std::abs(values[i] - c.values[i]) > COST_ACCURACY) {
         return false;
       }
     }
@@ -164,7 +164,7 @@ class Edge {
   EdgeId getId() const;
   void setId(EdgeId id);
 
-  void set_extrenal_id(const std::string& external_id);
+  void set_external_id(const std::string& external_id);
   const std::string& external_id() const;
   const Cost& getCost() const;
   double costByConfiguration(const Config& conf) const;
@@ -177,6 +177,9 @@ class Edge {
   static std::vector<EdgeId> administerEdges(std::vector<Edge>&& edges);
   static const Edge& getEdge(EdgeId id);
   static Edge& getMutEdge(EdgeId id);
+
+  static void write_osm_id_of_nodes(bool value);
+  static void use_external_edge_ids(bool value);
 
   friend void testEdgeInternals(const Edge& e, NodeId source, NodeId destination, Length length,
       Height height, Unsuitability unsuitability, const ReplacedEdge& edgeA,
@@ -195,6 +198,9 @@ class Edge {
   ReplacedEdge edgeB;
   NodePos sourcePos_;
   NodePos destPos_;
+
+  static bool use_node_osm_ids_;
+  static bool use_external_edge_ids_;
 
   public:
   static std::vector<Edge> edges;

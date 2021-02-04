@@ -28,9 +28,6 @@ find_package(Sanitizers)
 sanitizer_add_blacklist_file("sanitizer_blacklist.txt")
 
 
-add_library(process INTERFACE)
-target_include_directories(process SYSTEM INTERFACE vendor/boost-process)
-
 # Actual Implementation of project in static library
 file(GLOB lib_src src/multi_lib/*.cpp )
 add_library(multi_lib STATIC ${lib_src})
@@ -40,19 +37,28 @@ target_link_libraries(multi_lib ${Boost_LIBRARIES})
 target_link_libraries(multi_lib -lm)
 target_link_libraries(multi_lib -ldl)
 target_link_libraries(multi_lib ${CMAKE_THREAD_LIBS_INIT})
-target_link_libraries(multi_lib process)
 add_sanitizers(multi_lib)
 
 
+# Set graph's dimension to 4 when fresh
+set(GRAPH_DIM 4 CACHE STRING "The graph-metrics' dimension")
+message("Using GRAPH_DIM=${GRAPH_DIM}")
+add_compile_definitions(GRAPH_DIM=${GRAPH_DIM})
+
+# Set graph's edges' cost-accuracy to 10e-6
+set(COST_ACCURACY 0.000001 CACHE STRING "The graph-edges' cost-accuracy")
+message("Using COST_ACCURACY=${COST_ACCURACY}")
+add_compile_definitions(COST_ACCURACY=${COST_ACCURACY})
+
 # Executable of project links against lib
-add_executable(multi-ch src/main.cpp)
-target_link_libraries(multi-ch multi_lib)
-add_sanitizers(multi-ch)
+add_executable(multi-ch${GRAPH_DIM} src/main.cpp)
+target_link_libraries(multi-ch${GRAPH_DIM} multi_lib)
+add_sanitizers(multi-ch${GRAPH_DIM})
 
-add_executable(multi_lp src/lpsolver.cpp)
-target_link_libraries(multi_lp ${GLPK_LIBRARIES})
+add_executable(multi_lp${GRAPH_DIM} src/lpsolver.cpp)
+target_link_libraries(multi_lp${GRAPH_DIM} ${GLPK_LIBRARIES})
 
-cotire(multi_lib multi-ch)
+cotire(multi_lib multi-ch${GRAPH_DIM})
 
 # Definition of Testing library catch
 add_library(catch INTERFACE)

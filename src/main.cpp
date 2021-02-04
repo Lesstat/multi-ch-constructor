@@ -174,7 +174,11 @@ int testGraph(Graph& g)
 namespace po = boost::program_options;
 int main(int argc, char* argv[])
 {
-  std::cout.imbue(std::locale(""));
+  try {
+    std::cout.imbue(std::locale(""));
+  } catch (std::runtime_error& e) {
+    std::cerr << "could not set locale because of: " << e.what() << '\n';
+  }
 
   std::string loadFileName {};
   std::string saveFileName {};
@@ -203,7 +207,9 @@ int main(int argc, char* argv[])
   saving.add_options()
     ("write,w", po::value<std::string>(&saveFileName), "File to save graph to")
     ("zo", "gzip outfile")
-    ("write-graphml,wg", po::value<std::string>(&saveFileName), "Graphml file to save graph to.");
+    ("write-graphml,wg", po::value<std::string>(&saveFileName), "Graphml file to save graph to.")
+    ("using-osm-ids", "Using osm-ids instead of node-indices when writing edges")
+    ("external-edge-ids", "Read and write an extrenal edge index before each edge");
   // clang-format on
 
   po::options_description all;
@@ -218,6 +224,9 @@ int main(int argc, char* argv[])
     std::cout << all << '\n';
     return 0;
   }
+
+  Edge::use_external_edge_ids(vm.count("external-edge-ids") > 0);
+
   Graph g { std::vector<Node>(), std::vector<Edge>() };
   if (vm.count("text") > 0) {
     bool zipped_input = vm.count("zi") > 0;
@@ -253,6 +262,7 @@ int main(int argc, char* argv[])
     out << "# Input Graphfile: " << loadFileName << '\n';
     out << '\n';
 
+    Edge::write_osm_id_of_nodes(vm.count("using-osm-ids") > 0);
     g.writeToStream(out);
   } else if (vm.count("write-graphml") > 0) {
     std::cout << "saving" << '\n';

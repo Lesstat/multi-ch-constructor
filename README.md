@@ -15,9 +15,14 @@ git clone --recursive https://github.com/lesstat/multi-ch-constructor
 cd multi-ch-constructor
 ```
 
+Initialize submodules
+```shell
+git submodule update --init --recursive
+```
+
 Then create a build directory for cmake and run cmake and make.
 ``` shell
-cmake -Bbuild
+cmake -Bbuild -D GRAPH_DIM=4 # only 'cmake -Bbuild' for default graph-dim
 cmake --build build
 ```
 

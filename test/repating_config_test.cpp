@@ -160,17 +160,18 @@ TEST_CASE("Three node Line graph where LP is needed with same cost paths")
 0 1 48.1 9.2 0 0
 1 2 48.1 9.2 0 0
 2 3 48.1 9.2 0 0
-0 1 1.5 2 -1 -1
-1 2 1.5 2 -1 -1
-0 2 0.1 100 -1 -1
-0 2 100 0.1 -1 -1
-0 2 2 4.2 -1 -1
-0 2 3 4 -1 -1
+2 0 1 1.5 2 -1 -1
+3 1 2 1.5 2 -1 -1
+4 0 2 0.1 100 -1 -1
+5 0 2 100 0.1 -1 -1
+7 0 2 2 4.2 -1 -1
+9 0 2 3 4 -1 -1
 )file";
-
+  Edge::use_external_edge_ids(true);
   std::stringstream graph_file(graph_txt);
 
   auto result = buildGraphAndContractNode(graph_file, 1);
+  Edge::use_external_edge_ids(false);
 
   REQUIRE(result.empty());
 }

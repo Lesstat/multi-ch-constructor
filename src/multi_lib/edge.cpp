@@ -56,21 +56,24 @@ NodeId Edge::getDestId() const { return destination; }
 Edge Edge::createFromText(const std::string& text)
 {
 
-  std::string edge_id;
+  std::string external_id = "";
   size_t source, dest;
   std::array<double, Cost::dim> cost;
   long edgeA, edgeB;
 
   std::stringstream ss(text);
 
-  ss >> edge_id >> source >> dest;
+  if (use_external_edge_ids_) {
+    ss >> external_id;
+  }
+  ss >> source >> dest;
   for (auto& c : cost) {
     ss >> c;
   }
   ss >> edgeA >> edgeB;
 
   Edge e { NodeId(source), NodeId(dest) };
-  e.set_extrenal_id(edge_id);
+  e.set_external_id(external_id);
 
   if (edgeA > 0) {
     e.edgeA = EdgeId { static_cast<size_t>(edgeA) };
@@ -87,7 +90,17 @@ Edge Edge::createFromText(const std::string& text)
 
 void Edge::writeToStream(std::ostream& out) const
 {
-  out << external_id_ << ' ' << source << ' ' << destination;
+  if (use_external_edge_ids_) {
+    out << external_id_ << ' ';
+  }
+  if (use_node_osm_ids_) {
+    const auto& graph_properties = get_graph_properties();
+    std::string src_osm_id = get<std::string>("osmId", graph_properties, getSourceId().get());
+    std::string dst_osm_id = get<std::string>("osmId", graph_properties, getDestId().get());
+    out << src_osm_id << ' ' << dst_osm_id;
+  } else {
+    out << source << ' ' << destination;
+  }
   for (const auto& c : cost.values) {
     out << ' ' << c;
   }
@@ -134,7 +147,7 @@ void Edge::setId(EdgeId id)
   }
 }
 
-void Edge::set_extrenal_id(const std::string& external_id) { external_id_ = external_id; }
+void Edge::set_external_id(const std::string& external_id) { external_id_ = external_id; }
 
 const std::string& Edge::external_id() const { return external_id_; }
 
@@ -152,6 +165,9 @@ std::vector<EdgeId> Edge::administerEdges(std::vector<Edge>&& edges)
     } else if (edge.getId() != new_id) {
       std::cerr << "Edge ids dont align: " << '\n';
       std::terminate();
+    }
+    if (edge.external_id().empty()) {
+      edge.set_external_id(std::to_string(new_id));
     }
     ids.emplace_back(new_id);
   }
@@ -222,3 +238,9 @@ bool Edge::valid() const
   }
   return true;
 }
+
+bool Edge::use_node_osm_ids_ = false;
+bool Edge::use_external_edge_ids_ = false;
+
+void Edge::write_osm_id_of_nodes(bool value) { use_node_osm_ids_ = value; }
+void Edge::use_external_edge_ids(bool value) { use_external_edge_ids_ = value; }

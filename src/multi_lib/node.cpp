@@ -16,6 +16,7 @@
   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 #include "graph.hpp"
+#include <boost/exception/exception.hpp>
 
 Node::Node(const std::string external_id, NodeId id)
     : external_node_id_(external_id)
