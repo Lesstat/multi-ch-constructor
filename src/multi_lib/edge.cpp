@@ -113,7 +113,14 @@ void Edge::writeToStream(std::ostream& out) const
   out << '\n';
 }
 
-double Edge::costByConfiguration(const Config& conf) const { return cost * conf; }
+double Edge::costByConfiguration(const Config& conf) const
+{
+  if constexpr (Cost::dim == 1) {
+    return cost.values[0];
+  } else {
+    return cost * conf;
+  }
+}
 
 EdgeId Edge::getId() const { return internalId; }
 
